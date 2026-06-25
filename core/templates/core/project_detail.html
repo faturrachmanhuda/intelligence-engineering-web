@@ -1,0 +1,1526 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{{ project.name }} - CoreIE
+
+{% endblock %}
+
+
+{% block body %}
+<style>
+    /* Prevent side-by-side flex layout for list-item-card */
+    .list-item.list-item-card {
+        position: relative !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 16px !important;
+        padding: 20px !important;
+        background: #ffffff !important;
+        border: 1px solid var(--color-border) !important;
+        border-radius: var(--radius) !important;
+        margin-bottom: 20px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .list-item-card .card-delete-btn {
+        position: absolute !important;
+        top: 12px !important;
+        right: 12px !important;
+        z-index: 10 !important;
+    }
+
+    .list-item-card .form-textarea-main {
+        width: 100% !important;
+        padding-right: 48px !important;
+        min-height: 100px !important;
+        box-sizing: border-box !important;
+    }
+
+    .form-section-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 12px !important;
+        width: 100% !important;
+    }
+
+    .form-section-header h3 {
+        margin-bottom: 0 !important;
+    }
+
+    /* Fullwidth & Popup Sidebar for Detail Page */
+    .dashboard-main.detail-main {
+        margin-left: 0 !important;
+    }
+
+    .detail-page .sidebar {
+        transform: translateX(-100%);
+        width: 240px !important;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1040;
+        box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
+        top: 0;
+        padding-top: 0;
+    }
+    
+    .detail-page .sidebar-popup-header {
+        display: flex !important;
+    }
+
+    body.sidebar-expanded .detail-page .sidebar {
+        transform: translateX(0);
+    }
+
+    body.sidebar-expanded .detail-page .sidebar .sidebar-label {
+        opacity: 1 !important;
+        width: auto !important;
+    }
+
+    /* Drawer Overlay */
+    .drawer-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 1030;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    body.sidebar-expanded .drawer-overlay {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* Vertical Stepper Styles */
+    .vertical-stepper {
+        display: flex;
+        flex-direction: column;
+        background: transparent;
+        padding-top: 10px;
+    }
+
+    .step-item {
+        display: flex;
+        align-items: flex-start;
+        position: relative;
+        cursor: pointer;
+        min-height: 80px;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        text-align: left;
+        color: inherit;
+        font-family: inherit;
+        margin-bottom: 0 !important;
+    }
+
+    .step-item.disabled {
+        cursor: not-allowed;
+    }
+
+    .step-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: transparent;
+        border: 2px solid var(--color-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        flex-shrink: 0;
+        z-index: 2;
+        transition: transform 0.2s, background-color 0.2s, border-color 0.2s;
+    }
+
+    /* Active tab style — solid blue circle with white dot */
+    .step-item.active .step-circle {
+        background-color: var(--color-accent);
+        border-color: var(--color-accent);
+        transform: scale(1.1);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 15%, transparent);
+    }
+
+    .step-label {
+        margin-left: 16px;
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--color-gray);
+        line-height: 32px;
+        transition: color 0.2s, font-weight 0.2s;
+        white-space: nowrap;
+    }
+
+    .step-item.active .step-label {
+        font-weight: 600;
+        color: var(--color-accent);
+    }
+
+    .step-item.disabled {
+        opacity: 0.5;
+    }
+
+    .step-item.disabled .step-circle {
+        background-color: transparent;
+        border-color: var(--color-border);
+        box-shadow: none;
+    }
+
+    .step-item.disabled .step-label {
+        color: var(--color-gray);
+    }
+
+    .step-line {
+        position: absolute;
+        top: 32px;
+        left: 14.5px;
+        bottom: 0;
+        width: 3px;
+        background-color: var(--color-border);
+        z-index: 1;
+    }
+
+    /* Active line — blue */
+    .step-item.active .step-line {
+        background-color: var(--color-accent);
+    }
+
+    /* Icon toggling — default: show grey checkmark */
+    .step-item .icon-completed {
+        display: block;
+        stroke: var(--color-gray);
+    }
+
+    .step-item .icon-active {
+        display: none;
+        fill: none;
+        stroke: white;
+    }
+
+    /* Active (not completed): hide checkmark, show white dot */
+    .step-item.active:not(.completed) .icon-completed {
+        display: none;
+    }
+
+    .step-item.active:not(.completed) .icon-active {
+        display: block;
+        fill: none;
+        stroke: white;
+    }
+
+    /* Completed state — green solid circle with white checkmark */
+    .step-item.completed .step-circle {
+        background-color: #549F55;
+        border-color: #549F55;
+    }
+
+    .step-item.completed .step-line {
+        background-color: #549F55;
+    }
+
+    .step-item.completed .step-label {
+        color: #549F55;
+        font-weight: 600;
+    }
+
+    .step-item.completed .icon-completed {
+        display: block;
+        stroke: white;
+    }
+
+    .step-item.completed .icon-active {
+        display: none !important;
+    }
+
+    /* Active + Completed: show blue solid, white dot, blue line */
+    .step-item.active.completed .step-circle {
+        background-color: var(--color-accent);
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 15%, transparent);
+    }
+
+    .step-item.active.completed .step-line {
+        background-color: var(--color-accent);
+    }
+
+    .step-item.active.completed .step-label {
+        color: var(--color-accent);
+    }
+
+    .step-item.active.completed .icon-completed {
+        display: none !important;
+    }
+
+    .step-item.active.completed .icon-active {
+        display: block !important;
+        fill: white;
+    }
+
+    .step-item.active .icon-disabled {
+        display: none;
+    }
+
+    .step-item.disabled .icon-completed {
+        display: none;
+    }
+
+    .step-item.disabled .icon-active {
+        display: none;
+    }
+
+    .step-item.disabled .icon-disabled {
+        display: block;
+    }
+    
+    /* Remove input background and border in review mode */
+    #review-final-cloned-content .readonly-text,
+    #review-final-cloned-content .form-input,
+    #review-final-cloned-content .form-select,
+    #review-final-cloned-content input,
+    #review-final-cloned-content textarea,
+    #review-final-cloned-content select {
+        background: transparent !important;
+        border: none !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        box-shadow: none !important;
+        resize: none !important;
+    }
+    #review-final-cloned-content td .readonly-text {
+        padding: 0 !important;
+        min-height: auto !important;
+    }
+</style>
+<div class="dashboard-page detail-page">
+    <script>
+        // Force collapse sidebar on load
+        document.body.classList.remove('sidebar-expanded');
+    </script>
+    {% include 'core/navbar.html' %}
+    {% include 'core/sidebar.html' %}
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+
+    <main class="dashboard-main detail-main">
+        <!-- Top Actions Bar Removed -->
+
+        <div class="project-info" style="margin-bottom: 40px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+                <div style="flex: 1; padding-right: 24px;">
+                    <h1 class="project-info-title"
+                        style="margin-bottom: 8px; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">{{ project.name }}</h1>
+                    <p
+                        style="color: var(--color-gray); font-size: 15px; margin: 0; line-height: 1.6; max-width: 800px;">
+                        {% if project.description %}
+                        {{ project.description }}
+                        {% else %}
+                        Belum ada deskripsi untuk proyek ini.
+                        {% endif %}
+                    </p>
+                </div>
+                <div style="text-align: right; padding-top: 8px;">
+                    <div
+                        style="font-size: 12px; color: var(--color-gray); display: inline-flex; align-items: center; gap: 6px; font-weight: 500;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span id="draft-status-card">Belum disimpan</span>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                style="display: flex; align-items: center; gap: 32px; flex-wrap: wrap; padding: 20px 24px; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+
+                <!-- Supervisor Profile -->
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div
+                        style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #4361ee, #3a0ca3); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; box-shadow: 0 3px 6px rgba(67, 97, 238, 0.3); border: 2px solid var(--color-bg);">
+                        {{ project.supervisor|default:"?"|make_list|first|upper }}
+                    </div>
+                    <div>
+                        <div
+                            style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-gray); font-weight: 600; margin-bottom: 2px;">
+                            Supervisor</div>
+                        <div style="font-size: 14px; font-weight: 600; color: var(--color-text);">{{ project.supervisor|default:"Belum Diatur" }}</div>
+                    </div>
+                </div>
+
+                <!-- Division -->
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div
+                        style="width: 40px; height: 40px; border-radius: 10px; background: rgba(67, 97, 238, 0.15); color: var(--color-accent); display: flex; align-items: center; justify-content: center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                            <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                            <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                            <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                        </svg>
+                    </div>
+                    <div>
+                        <div
+                            style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-gray); font-weight: 600; margin-bottom: 2px;">
+                            Pelaksana</div>
+                        <div style="font-size: 14px; font-weight: 600; color: var(--color-text);">{{ project.division|default:"Belum Diatur" }}</div>
+                    </div>
+                </div>
+
+                <!-- Spacer to push dates to the right -->
+                <div style="flex-grow: 1;"></div>
+
+                <!-- Start Date -->
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div
+                        style="width: 40px; height: 40px; border-radius: 10px; background: rgba(67, 97, 238, 0.15); color: var(--color-accent); display: flex; align-items: center; justify-content: center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <div
+                            style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-gray); font-weight: 600; margin-bottom: 2px;">
+                            Tanggal Mulai</div>
+                        <div style="font-size: 14px; font-weight: 600; color: var(--color-text);">{{ project.start_date|date:"d M Y"|default:"Belum Diatur" }}</div>
+                    </div>
+                </div>
+
+                <!-- End Date -->
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div
+                        style="width: 40px; height: 40px; border-radius: 10px; background: rgba(67, 97, 238, 0.15); color: var(--color-accent); display: flex; align-items: center; justify-content: center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <div
+                            style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-gray); font-weight: 600; margin-bottom: 2px;">
+                            Tanggal Akhir</div>
+                        <div style="font-size: 14px; font-weight: 600; color: var(--color-text);">{{ project.end_date|date:"d M Y"|default:"Belum Diatur" }}</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- New Two-Column Layout Container -->
+        <div class="tabs-container project-tabs"
+            style="opacity: 0; transition: opacity 0.2s ease-in-out; display: flex; gap: 40px; align-items: flex-start;">
+
+            <!-- Left Column: Vertical Sequence Stepper -->
+            <div class="vertical-stepper" style="width: 280px; flex-shrink: 0; position: sticky; top: 100px;">
+                <div class="step-item tab-btn active" data-tab="objectives">
+                    <div class="step-circle">
+                        <svg class="icon-completed" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <svg class="icon-active" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                        </svg>
+                        <svg class="icon-disabled" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <svg class="icon-pending" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                            <circle cx="12" cy="12" r="1"></circle>
+                            <circle cx="19" cy="12" r="1"></circle>
+                            <circle cx="5" cy="12" r="1"></circle>
+                        </svg>
+                    </div>
+                    <div class="step-label">Meaningful Objectives</div>
+                    <div class="step-line"></div>
+                </div>
+                <div class="step-item tab-btn disabled" data-tab="experiences">
+                    <div class="step-circle">
+                        <svg class="icon-completed" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <svg class="icon-active" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                        </svg>
+                        <svg class="icon-disabled" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <svg class="icon-pending" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                            <circle cx="12" cy="12" r="1"></circle>
+                            <circle cx="19" cy="12" r="1"></circle>
+                            <circle cx="5" cy="12" r="1"></circle>
+                        </svg>
+                    </div>
+                    <div class="step-label">Intelligence Experiences</div>
+                    <div class="step-line"></div>
+                </div>
+                <div class="step-item tab-btn disabled" data-tab="implementation">
+                    <div class="step-circle">
+                        <svg class="icon-completed" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <svg class="icon-active" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                        </svg>
+                        <svg class="icon-disabled" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <svg class="icon-pending" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                            <circle cx="12" cy="12" r="1"></circle>
+                            <circle cx="19" cy="12" r="1"></circle>
+                            <circle cx="5" cy="12" r="1"></circle>
+                        </svg>
+                    </div>
+                    <div class="step-label">Intelligence Implementation</div>
+                    <div class="step-line"></div>
+                </div>
+                <div class="step-item tab-btn disabled" data-tab="creation">
+                    <div class="step-circle">
+                        <svg class="icon-completed" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <svg class="icon-active" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                        </svg>
+                        <svg class="icon-disabled" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <svg class="icon-pending" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                            <circle cx="12" cy="12" r="1"></circle>
+                            <circle cx="19" cy="12" r="1"></circle>
+                            <circle cx="5" cy="12" r="1"></circle>
+                        </svg>
+                    </div>
+                    <div class="step-label">Creation Status</div>
+                    <div class="step-line"></div>
+                </div>
+                <div class="step-item tab-btn disabled" data-tab="orchestration">
+                    <div class="step-circle">
+                        <svg class="icon-completed" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <svg class="icon-active" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                        </svg>
+                        <svg class="icon-disabled" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <svg class="icon-pending" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                            <circle cx="12" cy="12" r="1"></circle>
+                            <circle cx="19" cy="12" r="1"></circle>
+                            <circle cx="5" cy="12" r="1"></circle>
+                        </svg>
+                    </div>
+                    <div class="step-label">Orchestration</div>
+                </div>
+
+            </div> <!-- End Left Column Stepper -->
+
+            <!-- Right Column: Form Content & Navigation -->
+            <div class="form-main-column" style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+                <div class="tabs-content">
+                    <input type="hidden" id="ic-submitted" value="false">
+                    <!-- Tab 1: Meaningful Objectives -->
+                    <div class="tab-panel active" id="tab-objectives">
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3>Organizational Objectives</h3>
+                            </div>
+                            <p class="form-hint" style="margin-top:-6px;">Apa nilai bisnis utama yang ingin dicapai
+                                perusahaan melalui sistem cerdas ini?</p>
+                            <div class="obj-tabs">
+                                <div class="obj-tabs-nav">
+                                    <button class="obj-tab-btn active" data-obj="1">Objective 1</button>
+                                    <button class="obj-tab-add" id="add-objective">+</button>
+                                </div>
+                                <div class="obj-tabs-content">
+                                    <div class="obj-tab-panel active" id="obj-panel-1">
+                                        <label class="form-label">Tujuan Utama <span class="required">*</span></label>
+                                        <textarea class="form-textarea"
+                                            placeholder="Apa tujuan utama organisasi yang ingin dicapai?"></textarea>
+                                        <div class="form-row-2col">
+                                            <div class="form-col">
+                                                <label class="form-label">Bagaimana cara mencapainya? <span class="required">*</span></label>
+                                                <textarea class="form-textarea form-textarea-sm"
+                                                    placeholder="Bagaimana strategi untuk mencapainya?"></textarea>
+                                            </div>
+                                            <div class="form-col">
+                                                <label class="form-label">Bagaimana cara mengukurnya? <span class="required">*</span></label>
+                                                <textarea class="form-textarea form-textarea-sm"
+                                                    placeholder="Bagaimana metrik keberhasilannya?"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3>Leading Indicators <span class="required">*</span></h3>
+                                <div class="leading-toolbar">
+                                    <button class="btn-add" id="add-leading-row">+ Tambah Baris</button>
+                                    <button class="btn-add" id="add-leading-col">+ Tambah Kolom</button>
+                                </div>
+                            </div>
+                            <p class="form-hint" style="margin-top:-6px; margin-bottom:12px;">Indikator metrik apa saja
+                                yang
+                                bisa memprediksi keberhasilan sistem ini dibandingkan dengan produk kompetitor?</p>
+                            <div class="leading-table-wrapper">
+                                <table class="dynamic-table leading-table" id="leading-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="leading-th-no" style="width: 40px;">No</th>
+                                            <th class="leading-th-fixed">Fitur</th>
+                                            <th><input type="text"
+                                                    class="form-input leading-col-header leading-col-system"
+                                                    placeholder="Nama Sistem" value=""></th>
+                                            <th><input type="text" class="form-input leading-col-header"
+                                                    placeholder="Produk Lain" value=""><button
+                                                    class="leading-col-delete">x</button></th>
+                                            <th class="leading-th-action"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="row-number">1</td>
+                                            <td><input type="text" class="form-input" placeholder="Nama fitur..."></td>
+                                            <td><input type="text" class="form-input" placeholder="Nilai..."></td>
+                                            <td><input type="text" class="form-input" placeholder="Nilai..."></td>
+                                            <td class="leading-row-delete-cell"><button
+                                                    class="btn-icon btn-delete leading-row-delete">x</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3>User Outcomes</h3>
+                            </div>
+                            <p class="form-hint" style="margin-top:-6px;">Manfaat nyata apa yang akan dirasakan oleh
+                                pengguna saat berinteraksi dengan sistem ini?</p>
+                            <div class="obj-tabs">
+                                <div class="obj-tabs-nav" id="outcome-tabs-nav">
+                                    <button class="obj-tab-btn active" data-obj="outcome-1" data-group="outcome">Outcome
+                                        1</button>
+                                    <button class="obj-tab-add" id="add-outcome">+</button>
+                                </div>
+                                <div class="obj-tabs-content" id="outcome-tabs-content">
+                                    <div class="obj-tab-panel active" id="obj-panel-outcome-1">
+                                        <label class="form-label">Manfaat Pengguna <span class="required">*</span></label>
+                                        <textarea class="form-textarea"
+                                            placeholder="Apa manfaat yang akan dirasakan pengguna?"></textarea>
+                                        <div class="form-row-2col">
+                                            <div class="form-col">
+                                                <label class="form-label">Bagaimana cara mencapainya? <span class="required">*</span></label>
+                                                <textarea class="form-textarea form-textarea-sm"
+                                                    placeholder="Bagaimana strategi untuk mencapainya?"></textarea>
+                                            </div>
+                                            <div class="form-col">
+                                                <label class="form-label">Bagaimana cara mengukurnya? <span class="required">*</span></label>
+                                                <textarea class="form-textarea form-textarea-sm"
+                                                    placeholder="Bagaimana metrik keberhasilannya?"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3>Model Properties</h3>
+                            </div>
+                            <p class="form-hint" style="margin-top:-6px;">Spesifikasi teknis dan kriteria akurasi yang
+                                harus
+                                dipenuhi oleh model AI/Machine Learning-nya.</p>
+                            <div class="obj-tabs">
+                                <div class="obj-tabs-nav" id="property-tabs-nav">
+                                    <button class="obj-tab-btn active" data-obj="property-1"
+                                        data-group="property">Property
+                                        1</button>
+                                    <button class="obj-tab-add" id="add-property">+</button>
+                                </div>
+                                <div class="obj-tabs-content" id="property-tabs-content">
+                                    <div class="obj-tab-panel active" id="obj-panel-property-1">
+                                        <label class="form-label">Kriteria Model <span class="required">*</span></label>
+                                        <textarea class="form-textarea"
+                                            placeholder="Apa sifat atau kemampuan teknis model AI?"></textarea>
+                                        <div class="form-row-2col">
+                                            <div class="form-col">
+                                                <label class="form-label">Bagaimana cara mencapainya? <span class="required">*</span></label>
+                                                <textarea class="form-textarea form-textarea-sm"
+                                                    placeholder="Bagaimana cara mencapainya?"></textarea>
+                                            </div>
+                                            <div class="form-col">
+                                                <label class="form-label">Bagaimana cara mengukurnya? <span class="required">*</span></label>
+                                                <textarea class="form-textarea form-textarea-sm"
+                                                    placeholder="Bagaimana cara mengukurnya?"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Intelligence Experiences -->
+                    <div class="tab-panel" id="tab-experiences">
+                        <div class="form-section">
+                            <h3>Penyajian Kecerdasan <span class="required">*</span></h3>
+                            <p class="form-hint">Pilih satu atau lebih cara penyajian:</p>
+                            <div class="checkbox-group">
+                                <div class="checkbox-wrapper">
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" value="automate">
+                                        <span class="checkbox-label">Automate</span>
+                                        <span class="checkbox-desc">Sistem otomatis melakukan aksi tanpa diminta</span>
+                                    </label>
+                                    <a href="#" class="example-link" data-example="automate">Lihat Contoh</a>
+                                </div>
+                                <div class="checkbox-wrapper">
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" value="prompt">
+                                        <span class="checkbox-label">Prompt</span>
+                                        <span class="checkbox-desc">User input, sistem memberikan jawaban</span>
+                                    </label>
+                                    <a href="#" class="example-link" data-example="prompt">Lihat Contoh</a>
+                                </div>
+                                <div class="checkbox-wrapper">
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" value="organisation">
+                                        <span class="checkbox-label">Organisation</span>
+                                        <span class="checkbox-desc">Mengorganisir informasi secara cerdas</span>
+                                    </label>
+                                    <a href="#" class="example-link" data-example="organisation">Lihat Contoh</a>
+                                </div>
+                                <div class="checkbox-wrapper">
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" value="annotate">
+                                        <span class="checkbox-label">Annotate</span>
+                                        <span class="checkbox-desc">Memberikan label/anotasi pada data</span>
+                                    </label>
+                                    <a href="#" class="example-link" data-example="annotate">Lihat Contoh</a>
+                                </div>
+                            </div>
+                            <textarea class="form-textarea" placeholder="Jelaskan cara penyajiannya..."></textarea>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3>Fungsi-fungsi Realisasi Objectives <span class="required">*</span></h3>
+                                <button class="btn-add" data-table="functions-table" data-numbered="true">+ Tambah
+                                    Fungsi</button>
+                            </div>
+                            <p class="form-hint" style="margin-top:-6px; margin-bottom:12px;">Rincian fungsi spesifik
+                                apa
+                                saja yang perlu dibangun untuk merealisasikan tujuan di atas.</p>
+                            <table class="dynamic-table table-fixed" id="functions-table">
+                                <colgroup>
+                                    <col style="width: 40px;">
+                                    <col style="width: 30%;">
+                                    <col style="width: auto;">
+                                    <col style="width: 48px;">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama Fungsi</th>
+                                        <th>Deskripsi</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="row-number">1</td>
+                                        <td><input type="text" class="form-input" placeholder="Nama fungsi"></td>
+                                        <td><input type="text" class="form-input" placeholder="Deskripsi fungsi"></td>
+                                        <td><button class="btn-icon btn-delete">x</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3>Minimalisasi Kesalahan <span class="required">*</span></h3>
+                                <button class="btn-add" data-target="error-minimization">+ Tambah Strategi</button>
+                            </div>
+                            <p class="form-hint" style="margin-top:-6px; margin-bottom:12px;">Bagaimana sistem menangani
+                                potensi kesalahan dari prediksi AI agar tidak fatal.</p>
+                            <div class="dynamic-list" id="error-minimization">
+                                <div class="list-item list-item-with-select">
+                                    <select class="form-select func-select">
+                                        <option value="">Pilih Fungsi...</option>
+                                    </select>
+                                    <input type="text" class="form-input" placeholder="Strategi minimalisasi error">
+                                    <button class="btn-icon btn-delete">x</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3>Pengumpulan Data untuk Perbaikan <span class="required">*</span></h3>
+                                <button class="btn-add" data-target="data-collection">+ Tambah Rencana</button>
+                            </div>
+                            <p class="form-hint" style="margin-top:-6px; margin-bottom:12px;">Bagaimana cara sistem
+                                mengumpulkan data baru secara berkala untuk melatih ulang (re-train) model.</p>
+                            <div class="dynamic-list" id="data-collection">
+                                <div class="list-item list-item-with-select">
+                                    <select class="form-select func-select">
+                                        <option value="">Pilih Fungsi...</option>
+                                    </select>
+                                    <input type="text" class="form-input" placeholder="Rencana pengumpulan data">
+                                    <button class="btn-icon btn-delete">x</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: Intelligence Implementation -->
+                    <div class="tab-panel" id="tab-implementation">
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3>Proses Bisnis Sistem Cerdas <span class="required">*</span></h3>
+                                <button class="btn-add" data-table="process-table" data-numbered="true">+ Tambah
+                                    Proses</button>
+                            </div>
+                            <p class="form-hint" style="margin-top:-6px; margin-bottom:12px;">Alur kerja atau tahapan
+                                proses
+                                yang terjadi di dalam sistem ini secara berurutan.</p>
+                            <table class="dynamic-table" id="process-table">
+                                <colgroup>
+                                    <col style="width: 40px;">
+                                    <col style="width: 35%;">
+                                    <col style="width: auto;">
+                                    <col style="width: 48px;">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama Proses</th>
+                                        <th>Deskripsi</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="row-number">1</td>
+                                        <td><input type="text" class="form-input process-name-input"
+                                                placeholder="Nama proses"></td>
+                                        <td><input type="text" class="form-input" placeholder="Deskripsi proses"></td>
+                                        <td><button class="btn-icon btn-delete">x</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Teknologi per Proses <span class="required">*</span></h3>
+                            <p class="form-hint">Teknologi yang digunakan untuk setiap proses.</p>
+                            <table class="dynamic-table" id="tech-table">
+                                <colgroup>
+                                    <col style="width: 40px;">
+                                    <col style="width: 35%;">
+                                    <col style="width: auto;">
+                                    <col style="width: 48px;">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Proses</th>
+                                        <th>Teknologi</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="row-number">1</td>
+                                        <td class="process-name">-</td>
+                                        <td><input type="text" class="form-input tech-input"
+                                                placeholder="Teknologi yang digunakan"></td>
+                                        <td><button class="btn-icon tech-list-btn" title="Pilih dari daftar"><svg
+                                                    width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round">
+                                                    <circle cx="11" cy="11" r="8"></circle>
+                                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                                </svg></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Identifikasi Proses Cerdas <span class="required">*</span></h3>
+                            <p class="form-hint">Centang proses yang menjadikan sistem ini CERDAS:</p>
+                            <div class="smart-process-list" id="smart-processes">
+                                <div class="smart-process-item">
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" class="smart-check">
+                                        <span class="checkbox-label">-</span>
+                                    </label>
+                                    <div class="smart-reason" style="display:none;">
+                                        <input type="text" class="form-input"
+                                            placeholder="Alasan perlunya AI untuk proses ini">
+                                        <p class="upload-hint">Format: JPG, PNG, PDF, DOC (Maks. 5MB)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3>Upload Diagram Proses Bisnis</h3>
+                                <a href="{% static 'core/docs/contoh_diagram.pdf' %}" target="_blank" class="view-pdf-link"
+                                    style="float: right; font-size: 14px; font-weight: normal; color: var(--color-accent); text-decoration: none; margin-top: 4px;">Lihat
+                                    Contoh (PDF)</a>
+                            </div>
+                            <div class="upload-area" id="upload-implementation">
+                                <div class="upload-dropzone">
+                                    <input type="file" class="upload-input" id="file-implementation"
+                                        accept="image/*,.pdf,.doc,.docx" multiple>
+                                    <div class="upload-placeholder">
+                                        <span class="upload-icon">&#8593;</span>
+                                        <p>Drag & drop file di sini atau <span class="upload-browse">pilih file</span>
+                                        </p>
+                                        <p class="upload-hint">Format: JPG, PNG, PDF, DOC (Maks. 5MB)</p>
+                                    </div>
+                                </div>
+                                <div class="upload-preview" id="preview-implementation">
+                                    <!-- File previews will appear here via JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 4: Creation Status -->
+                    <div class="tab-panel" id="tab-creation">
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3>Batasan Pengembangan <span class="required">*</span></h3>
+                                <button class="btn-add" data-table="constraints-table" data-numbered="true"
+                                    data-has-select="true">+ Tambah Batasan</button>
+                            </div>
+                            <p class="form-hint" style="margin-top:-6px; margin-bottom:12px;">Apa saja limitasi teknis,
+                                sumber daya, atau waktu yang perlu diperhatikan dalam proyek ini.</p>
+                            <table class="dynamic-table" id="constraints-table">
+                                <colgroup>
+                                    <col style="width: 40px;">
+                                    <col style="width: 160px;">
+                                    <col style="width: auto;">
+                                    <col style="width: 48px;">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Kategori</th>
+                                        <th>Deskripsi</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="row-number">1</td>
+                                        <td>
+                                            <select class="form-select">
+                                                <option value="">Pilih...</option>
+                                                <option value="data">Data</option>
+                                                <option value="infra">Infrastruktur</option>
+                                                <option value="waktu">Waktu</option>
+                                                <option value="sdm">SDM</option>
+                                                <option value="biaya">Biaya</option>
+                                                <option value="lainnya">Lainnya</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="text" class="form-input" placeholder="Deskripsi batasan"></td>
+                                        <td><button class="btn-icon btn-delete">x</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3>Status Realisasi Modul Cerdas <span class="required">*</span></h3>
+                            </div>
+                            <p class="form-hint" style="margin-top:-6px; margin-bottom:12px;">Pantau sejauh mana status
+                                pengembangan tiap modul cerdas saat ini.</p>
+                            <table class="dynamic-table" id="status-table">
+                                <colgroup>
+                                    <col style="width: 40px;">
+                                    <col style="width: 30%;">
+                                    <col style="width: 35%;">
+                                    <col style="width: auto;">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Modul/Fungsi</th>
+                                        <th>Status</th>
+                                        <th>Catatan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="row-number">1</td>
+                                        <td class="module-name">-</td>
+                                        <td>
+                                            <select class="form-select status-select">
+                                                <option value="not_started">Belum Mulai</option>
+                                                <option value="in_progress">In Progress</option>
+                                                <option value="done">Done</option>
+                                                <option value="blocked">Blocked</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="text" class="form-input optional-input" placeholder="Catatan tambahan"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Progress Keseluruhan <span class="required">*</span></h3>
+                            <div class="progress-overview">
+                                <div class="progress-bar-large">
+                                    <div class="progress-fill-large" id="creation-progress" style="width: 0%"></div>
+                                </div>
+                                <span class="progress-percentage" id="creation-percentage">0%</span>
+                            </div>
+                            <div class="progress-stats" id="creation-stats">
+                                <span class="stat-item stat-done"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Done: 0</span>
+                                <span class="stat-item stat-progress"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> Progress: 0</span>
+                                <span class="stat-item stat-pending"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg> Belum: 0</span>
+                                <span class="stat-item stat-blocked"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg> Blocked: 0</span>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Upload Bukti/Evidence <span class="optional">(Opsional)</span></h3>
+                            <div class="upload-area" id="upload-creation">
+                                <div class="upload-dropzone">
+                                    <input type="file" class="upload-input" id="file-creation"
+                                        accept="image/*,.pdf,.doc,.docx" multiple>
+                                    <div class="upload-placeholder">
+                                        <span class="upload-icon">&#8593;</span>
+                                        <p>Drag & drop file di sini atau <span class="upload-browse">pilih file</span>
+                                        </p>
+                                        <p class="upload-hint">Format: JPG, PNG, PDF, DOC (Maks. 5MB)</p>
+                                    </div>
+                                </div>
+                                <div class="upload-preview" id="preview-creation">
+                                    <!-- File previews will appear here via JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 5: Intelligence Orchestration -->
+                    <div class="tab-panel" id="tab-orchestration">
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3>Timeline Orchestration <span class="required">*</span></h3>
+                                <button class="btn-add" id="add-phase-btn">+ Fase Baru</button>
+                            </div>
+                            <p class="form-hint" style="margin-top:-6px; margin-bottom:12px;">Kapan setiap fase
+                                pengembangan
+                                akan dilakukan dan siapa penanggung jawabnya.</p>
+                            <table class="dynamic-table gantt-table" id="gantt-table">
+                                <colgroup>
+                                    <col style="width: 40px;">
+                                    <col style="width: auto;">
+                                    <col style="width: 20%;">
+                                    <col style="width: 15%;">
+                                    <col style="width: 15%;">
+                                    <col style="width: 15%;">
+                                    <col style="width: 15%;">
+                                    <col style="width: 48px;">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Kategori</th>
+                                        <th>Nama Fase</th>
+                                        <th>Mulai</th>
+                                        <th>Selesai</th>
+                                        <th>PIC</th>
+                                        <th>Status</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="phase-row" data-category="deployment">
+                                        <td class="row-number">1</td>
+                                        <td>
+                                            <select class="form-select form-select-sm">
+                                                <option value="deployment">Deployment</option>
+                                                <option value="maintenance">Pemeliharaan</option>
+                                                <option value="operation">Operasi</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="text" class="form-input" placeholder="Nama fase"></td>
+                                        <td><input type="date" class="form-input form-input-date"></td>
+                                        <td><input type="date" class="form-input form-input-date"></td>
+                                        <td><input type="text" class="form-input" placeholder="PIC"></td>
+                                        <td>
+                                            <select class="form-select status-select">
+                                                <option value="backlog">Backlog</option>
+                                                <option value="todo">To Do</option>
+                                                <option value="in_progress">In Progress</option>
+                                                <option value="done">Done</option>
+                                            </select>
+                                        </td>
+                                        <td><button class="btn-icon btn-delete">x</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3>Upload SOP Deployment <span class="optional">(Opsional)</span></h3>
+                                <a href="{% static 'core/docs/contoh_sop.pdf' %}" target="_blank" class="view-pdf-link"
+                                    style="float: right; font-size: 14px; font-weight: normal; color: var(--color-accent); text-decoration: none; margin-top: 4px;">Lihat
+                                    Contoh (PDF)</a>
+                            </div>
+                            <div class="upload-area" id="upload-orchestration">
+                                <div class="upload-dropzone">
+                                    <input type="file" class="upload-input" id="file-orchestration"
+                                        accept="image/*,.pdf,.doc,.docx" multiple>
+                                    <div class="upload-placeholder">
+                                        <span class="upload-icon">&#8593;</span>
+                                        <p>Drag & drop file di sini atau <span class="upload-browse">pilih file</span>
+                                        </p>
+                                        <p class="upload-hint">Format: JPG, PNG, PDF, DOC (Maks. 5MB)</p>
+                                    </div>
+                                </div>
+                                <div class="upload-preview" id="preview-orchestration">
+                                    <!-- File previews will appear here via JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3>Pelaksana Operasi <span class="required">*</span></h3>
+                                <button class="btn-add" data-table="operators-table" data-numbered="true">+ Tambah Operator</button>
+                            </div>
+                            <p class="form-hint" style="margin-top:-6px; margin-bottom:12px;">Definisikan siapa yang
+                                akan
+                                mengoperasikan sistem setelah deployment</p>
+                            <table class="dynamic-table" id="operators-table">
+                                <colgroup>
+                                    <col style="width: 40px;">
+                                    <col style="width: 30%;">
+                                    <col style="width: 30%;">
+                                    <col style="width: auto;">
+                                    <col style="width: 48px;">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama</th>
+                                        <th>Peran</th>
+                                        <th>Kontak</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="row-number">1</td>
+                                        <td><input type="text" class="form-input" placeholder="Nama"></td>
+                                        <td><input type="text" class="form-input" placeholder="Peran"></td>
+                                        <td><input type="text" class="form-input" placeholder="Kontak (Email / No. HP)">
+                                        </td>
+                                        <td><button class="btn-icon btn-delete">x</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+
+                    </div>
+                </div>
+
+                <!-- Previous/Next Navigation -->
+                <div class="tab-navigation">
+                    <button class="btn btn-outline" id="prev-tab" style="display:none;">&larr; Sebelumnya</button>
+                    <div class="tab-step-indicator">
+                        <span id="current-step">1</span> / 5
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+
+                        <button class="btn btn-primary" id="next-tab">Selanjutnya &rarr;</button>
+                        <button class="btn btn-primary" id="final-review-btn" style="display:none;">Finalisasi
+                            Proyek</button>
+                    </div>
+                </div>
+            </div> <!-- End Left Column -->
+
+
+        </div> <!-- End Two-Column Layout -->
+
+
+
+        <!-- Final Review Container (hidden by default) -->
+        <div class="review-container" id="review-final-container" style="display:none;">
+            <div class="review-header">
+                <h2>Review Finalisasi Proyek</h2>
+                <p class="form-hint">Periksa kembali keseluruhan data dari seluruh fase sebelum menyelesaikan proyek.</p>
+            </div>
+
+            <div id="review-final-validation-errors"></div>
+
+            <div id="review-final-cloned-content" class="readonly-mode"></div>
+
+            <div class="review-actions">
+                <button class="btn btn-outline" id="review-final-back">Kembali</button>
+                <div class="review-send-wrapper">
+                    <span class="review-final-send-hint"
+                        style="color:var(--color-error); font-size:12px; margin-right: 12px; display:none;">Pastikan
+                        semua data telah terisi.</span>
+                    <button class="btn btn-primary" id="review-final-send">Finalisasi Proyek</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Toast -->
+        <div class="toast" id="success-toast" style="display:none;">
+            <span class="toast-icon">&#10003;</span>
+            <span class="toast-text">Berhasil dikirim ke Intelligence Creation</span>
+        </div>
+    </main>
+</div>
+
+<!-- Tech Stack Picker Dropdown -->
+<div class="tech-picker" id="tech-picker" style="display:none;">
+    <div class="tech-picker-search">
+        <input type="text" class="form-input" id="tech-search" placeholder="Cari teknologi...">
+    </div>
+    <div class="tech-picker-list" id="tech-picker-list">
+        <!-- Populated by JS -->
+    </div>
+</div>
+
+<!-- Example Animation Modal -->
+<div class="example-modal" id="example-modal">
+    <div class="example-modal-overlay"></div>
+    <div class="example-modal-content">
+        <div class="example-modal-header">
+            <h3 id="example-modal-title">Contoh</h3>
+            <button class="example-modal-close">x</button>
+        </div>
+        <div class="example-modal-body" id="example-modal-body">
+            <!-- Animation content injected by JS -->
+        </div>
+    </div>
+</div>
+
+<!-- Unsaved Changes Modal -->
+<div class="custom-modal" id="unsaved-changes-modal"
+    style="display: none; position: fixed; inset: 0; z-index: 9999; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">
+    <div
+        style="background: var(--color-bg); padding: 24px; border-radius: 12px; max-width: 400px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center;">
+        <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 20px; font-weight: 600; color: var(--color-text);">Ada
+            draft yang belum disave nih</h3>
+        <p style="margin-bottom: 24px; color: var(--color-gray); font-size: 15px; line-height: 1.5;">Anda memiliki
+            perubahan yang belum disimpan. Apakah Anda ingin menyimpannya sebelum pindah halaman?</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button id="btn-unsaved-cancel" class="btn btn-outline" style="flex: 1;">Batal</button>
+            <button id="btn-unsaved-discard" class="btn btn-outline"
+                style="flex: 1; color: #ef4444; border-color: #ef4444;">Abaikan</button>
+            <button id="btn-unsaved-save" class="btn btn-primary" style="flex: 1;">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<!-- Finalization Modal -->
+<div class="custom-modal" id="finalization-modal"
+    style="display: none; position: fixed; inset: 0; z-index: 9999; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">
+    <div
+        style="background: var(--color-bg); padding: 24px; border-radius: 12px; max-width: 400px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: left;">
+        <h3 style="margin-bottom: 12px; font-size: 20px; font-weight: 600; color: var(--color-text);">
+            Finalisasi Proyek?</h3>
+        <p style="margin-bottom: 24px; color: var(--color-gray); font-size: 15px; line-height: 1.5;">Yakin ingin
+            melakukan finalisasi proyek? Data akan dikirim ke Intelligence Creation dan tidak dapat diubah lagi.</p>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button id="btn-final-cancel" class="btn btn-outline" style="padding: 10px 24px;">Batal</button>
+            <button id="btn-final-confirm" class="btn btn-primary" style="padding: 10px 24px;">Ya, Finalisasi</button>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    var SERVER_PROJECT_ID = "{{ project.id }}";
+    var SERVER_HTML_DRAFT = "{{ project.html_draft|escapejs }}";
+    var SERVER_JSON_DRAFT = "{{ project.json_draft|escapejs }}";
+    var SERVER_ACTIVE_TAB = "{{ project.active_tab|escapejs }}";
+    var PROJECT_START_DATE = "{{ project.start_date|date:'Y-m-d' }}";
+    var PROJECT_END_DATE = "{{ project.end_date|date:'Y-m-d' }}";
+    var SERVER_UPDATED_AT = "{{ project.updated_at|date:'c' }}";
+    var PROJECT_STATUS = "{{ project.status|escapejs }}";
+
+    // Nuke old localStorage to prevent cached main.js from ruining the layout
+    localStorage.removeItem('ie_draft_v1');
+
+    // Drawer Logic for Detail Page
+    document.addEventListener("DOMContentLoaded", function() {
+        const overlay = document.getElementById('drawerOverlay');
+        if (overlay) {
+            overlay.addEventListener('click', function() {
+                document.body.classList.remove('sidebar-expanded');
+            });
+        }
+
+// === INLINE STEPPER FIX ===
+// This runs from HTML directly - no external JS caching can block it
+var projectStatus = PROJECT_STATUS || '';
+var isProjectCompleted = projectStatus.toLowerCase() === 'completed';
+
+if (isProjectCompleted) {
+var activeTab = document.querySelector('.step-item.active');
+var activeTabId = activeTab ? activeTab.getAttribute('data-tab') : '';
+
+document.querySelectorAll('.step-item').forEach(function(item) {
+item.classList.remove('disabled');
+item.classList.add('completed');
+
+var circle = item.querySelector('.step-circle');
+var line = item.querySelector('.step-line');
+var label = item.querySelector('.step-label');
+var iconCompleted = item.querySelector('.icon-completed');
+var iconActive = item.querySelector('.icon-active');
+var iconDisabled = item.querySelector('.icon-disabled');
+var isThisActive = item.getAttribute('data-tab') === activeTabId;
+
+var centerStyle = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);margin:0;';
+
+if (isThisActive) {
+// Active tab: blue solid circle with white dot
+if (circle) { circle.style.cssText = 'background-color:var(--color-accent);border-color:var(--color-accent);box-shadow:0 0 0 4px color-mix(in srgb, var(--color-accent) 15%, transparent);transform:scale(1.1);'; }
+if (line) { line.style.backgroundColor = 'var(--color-accent)'; }
+if (label) { label.style.cssText = 'color:var(--color-accent);font-weight:600;'; }
+if (iconCompleted) { iconCompleted.setAttribute('style', centerStyle + 'display:none;'); }
+if (iconActive) { iconActive.setAttribute('style', centerStyle + 'display:block;fill:none;stroke:white;'); }
+} else {
+// Completed tab: green solid circle with white checkmark
+if (circle) { circle.style.cssText = 'background-color:#549F55;border-color:#549F55;'; }
+if (line) { line.style.backgroundColor = '#549F55'; }
+if (label) { label.style.cssText = 'color:#549F55;font-weight:600;'; }
+if (iconCompleted) { iconCompleted.setAttribute('style', centerStyle + 'display:block;stroke:white;'); }
+if (iconActive) { iconActive.setAttribute('style', centerStyle + 'display:none;'); }
+}
+if (iconDisabled) { iconDisabled.setAttribute('style', centerStyle + 'display:none;'); }
+});
+}
+});
+// === FAST TRACK FINALISASI ===
+document.addEventListener("DOMContentLoaded", function() {
+    const fastTrackBtn = document.getElementById('btn-fast-track-finalisasi');
+    if (fastTrackBtn) {
+        fastTrackBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // 1. Fill Checkboxes First (so any dependent inputs are shown)
+            document.querySelectorAll('.form-main-column input[type="checkbox"]').forEach(cb => {
+                if (!cb.checked) {
+                    cb.checked = true;
+                    cb.setAttribute('checked', 'checked');
+                    cb.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+
+            // 2. Fill Selects
+            document.querySelectorAll('.form-main-column select:not([readonly])').forEach(el => {
+                if (!el.value || el.value === "") {
+                    if (el.options.length > 1) {
+                        // try to pick the 2nd option if available, otherwise the last
+                        let idx = el.options.length > 1 ? 1 : 0;
+                        el.value = el.options[idx].value;
+                        el.options[idx].setAttribute('selected', 'selected');
+                        el.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                }
+            });
+
+            // 3. Fill Textareas
+            document.querySelectorAll('.form-main-column textarea:not([readonly])').forEach(el => {
+                if (!el.value.trim()) {
+                    var val = "Statis dummy teks untuk testing finalisasi " + Math.floor(Math.random()*1000);
+                    el.value = val;
+                    el.textContent = val;
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+
+            // 4. Fill All Other Inputs (text, date, number) - Excluding file/checkbox/radio
+            document.querySelectorAll('.form-main-column input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([readonly])').forEach(el => {
+                if (!el.value.trim()) {
+                    var val = "Testing " + Math.floor(Math.random()*1000);
+                    
+                    if (el.type === 'date') {
+                        val = "2026-01-01"; // Valid date format
+                    } else if (el.type === 'number') {
+                        val = "10";
+                    }
+                    
+                    el.value = val;
+                    el.setAttribute('value', val);
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+
+            // 5. Notify & Navigate to Final Review
+            setTimeout(() => {
+                alert('Form telah diisi secara statis. Menuju halaman revisi finalisasi...');
+                const reviewBtn = document.getElementById('final-review-btn');
+                if (reviewBtn) {
+                    reviewBtn.style.display = 'block';
+                    reviewBtn.click();
+                }
+            }, 300);
+        });
+    }
+});
+</script>
+<script src="{% static 'core/js/main_v2.js' %}?v=50"></script>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    setTimeout(function() {
+        var htmlDraft = SERVER_HTML_DRAFT || '';
+        var jsonDraft = (typeof SERVER_JSON_DRAFT !== 'undefined') ? SERVER_JSON_DRAFT : '';
+        
+        if ((htmlDraft.trim() === '' || htmlDraft.trim() === 'None') && jsonDraft.trim() !== '' && jsonDraft !== 'null' && jsonDraft !== 'None') {
+            try {
+                var rawData = JSON.parse(jsonDraft);
+                var data = {
+                    objectives: rawData.step_1 || rawData.objectives || {},
+                    experiences: rawData.step_2 || rawData.experiences || {},
+                    implementation: rawData.step_3 || rawData.implementation || {},
+                    creation: rawData.step_4 || rawData.creation || {},
+                    orchestration: rawData.step_5 || rawData.orchestration || {}
+                };
+                
+                // Step 1: Meaningful Objectives
+                if (data.objectives.organizational && data.objectives.organizational.length > 0) {
+                    var orgs = data.objectives.organizational;
+                    for (var i = 0; i < orgs.length; i++) {
+                        if (i > 0) $('#add-objective').click();
+                        (function(idx, org) {
+                            setTimeout(function() {
+                                var panel = $('#obj-panel-' + (idx + 1));
+                                panel.find('textarea').eq(0).val(org.objective || org.name || '');
+                                panel.find('textarea').eq(1).val(org.strategy || '');
+                                panel.find('textarea').eq(2).val(org.metrics || '');
+                            }, 100);
+                        })(i, orgs[i]);
+                    }
+                }
+                
+                var leads = Array.isArray(data.objectives.leading_indicators) ? data.objectives.leading_indicators : 
+                            (data.objectives.leading_indicators && data.objectives.leading_indicators.data) ? data.objectives.leading_indicators.data : [];
+                if (leads.length > 0) {
+                    for (var i = 0; i < leads.length; i++) {
+                        if (i > 0) $('#add-leading').click();
+                        (function(idx, lead) {
+                            setTimeout(function() {
+                                var panel = $('#leading-panel-' + (idx + 1));
+                                panel.find('textarea').eq(0).val(lead.metric || '');
+                                if (lead.values) {
+                                    panel.find('input').eq(0).val(lead.values[0] || '');
+                                    panel.find('input').eq(1).val(lead.values[1] || '');
+                                    panel.find('input').eq(2).val(lead.values[2] || '');
+                                }
+                            }, 100);
+                        })(i, leads[i]);
+                    }
+                }
+                
+                // Step 2: Intelligence Experiences
+                if (data.experiences.presentations || (data.experiences.presentation && data.experiences.presentation.types)) {
+                    var types = data.experiences.presentations || data.experiences.presentation.types;
+                    types.forEach(function(t) {
+                        var label = typeof t === 'string' ? t : t.label;
+                        $('.checkbox-label').filter(function() { return $(this).text().trim() === label; }).siblings('input').prop('checked', true);
+                    });
+                }
+                if (data.experiences.presentation_description || (data.experiences.presentation && data.experiences.presentation.description)) {
+                    var desc = data.experiences.presentation_description || data.experiences.presentation.description;
+                    $('#tab-experiences > .form-section').eq(0).find('textarea').val(desc);
+                }
+                
+                if (data.experiences.functions && data.experiences.functions.length > 0) {
+                    var funcs = data.experiences.functions;
+                    for (var i = 0; i < funcs.length; i++) {
+                        if (i > 0) $('#add-function').click();
+                        (function(idx, f) {
+                            setTimeout(function() {
+                                var row = $('#functions-table tbody tr').eq(idx);
+                                row.find('input').eq(0).val(f.name || '');
+                                row.find('input').eq(1).val(f.description || '');
+                            }, 100);
+                        })(i, funcs[i]);
+                    }
+                }
+                
+                // Step 3: Implementation
+                if (data.implementation.business_processes && data.implementation.business_processes.length > 0) {
+                    var bps = data.implementation.business_processes;
+                    for (var i = 0; i < bps.length; i++) {
+                        if (i > 0) $('#add-process').click();
+                        (function(idx, bp) {
+                            setTimeout(function() {
+                                var panel = $('#process-panel-' + (idx + 1));
+                                panel.find('input').eq(0).val(bp.name || '');
+                                panel.find('textarea').eq(0).val(bp.description || '');
+                            }, 100);
+                        })(i, bps[i]);
+                    }
+                }
+            } catch(e) {
+                console.error('Error autofilling from JSON:', e);
+            }
+        }
+    }, 500);
+});
+</script>
+{% endblock %}

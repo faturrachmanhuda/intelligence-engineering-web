@@ -1,0 +1,100 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}CoreIE - Intelligence Engineering{% endblock %}
+
+{% block body %}
+<div class="landing-page">
+    <nav class="navbar" style="padding: 0 40px; height: 72px; border-bottom: 1px solid var(--color-border); background: var(--color-bg);">
+        <div class="navbar-container" style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0;">
+            
+            <!-- Logo (Left) -->
+            <a href="{% url 'core:landing' %}" class="navbar-logo" style="display: flex; align-items: center; gap: 8px; flex: 1; color: var(--color-text); text-decoration: none;">
+                <div style="background-color: var(--color-accent); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                </div>
+                CoreIE
+            </a>
+
+            <!-- Links (Center) -->
+            <div class="navbar-links" style="flex: 1; display: flex; justify-content: center; gap: 40px;">
+                <a href="{% url 'core:landing' %}" class="nav-link active" style="font-size: 15px;">Home</a>
+                <a href="{% url 'core:about' %}" class="nav-link" style="font-size: 15px;">About</a>
+            </div>
+
+            <!-- Login (Right) -->
+            <div style="flex: 1; display: flex; justify-content: flex-end;">
+                <a href="{% url 'core:login' %}" style="background-color: var(--color-accent); color: #ffffff; padding: 8px 24px; border-radius: 8px; font-weight: 500; font-size: 14px; text-decoration: none; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                    Login
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="landing-main">
+        <div class="landing-content">
+            <h1 class="landing-heading">Intelligence Engineering</h1>
+            <p class="landing-subtitle">Mengelola perancangan rekayasa sistem cerdas</p>
+
+            <div class="tabs-container">
+                <div class="tabs-nav">
+                    <button class="tab-btn active" data-tab="objectives">Objectives</button>
+                    <button class="tab-btn" data-tab="experiences">Experiences</button>
+                    <button class="tab-btn" data-tab="implementation">Implementation</button>
+                    <button class="tab-btn" data-tab="creation">Creation</button>
+                    <button class="tab-btn" data-tab="orchestration">Orchestration</button>
+                </div>
+
+                <div class="tabs-content">
+                    <div class="tab-panel active" id="tab-objectives">
+                        <h3>Objectives</h3>
+                        <p>Mendefinisikan tujuan dan sasaran dari sistem cerdas yang akan dirancang. Modul ini mencakup analisis kebutuhan, penentuan KPI, dan perencanaan strategis untuk memastikan sistem yang dibangun sesuai dengan visi organisasi.</p>
+                    </div>
+                    <div class="tab-panel" id="tab-experiences">
+                        <h3>Experiences</h3>
+                        <p>Mengumpulkan dan menganalisis pengalaman dari proyek-proyek sebelumnya. Modul ini berfokus pada lessons learned, best practices, dan knowledge base yang dapat digunakan untuk meningkatkan kualitas perancangan sistem cerdas.</p>
+                    </div>
+                    <div class="tab-panel" id="tab-implementation">
+                        <h3>Implementation</h3>
+                        <p>Tahap implementasi teknis dari sistem cerdas, mencakup pengembangan model, integrasi data, deployment pipeline, dan pengujian sistem. Memastikan solusi dapat berjalan dengan optimal di lingkungan produksi.</p>
+                    </div>
+                    <div class="tab-panel" id="tab-creation">
+                        <h3>Creation</h3>
+                        <p>Proses kreatif dalam merancang arsitektur dan komponen sistem cerdas. Meliputi desain algoritma, pemilihan teknologi, prototyping, dan iterasi desain untuk menghasilkan solusi yang inovatif dan efisien.</p>
+                    </div>
+                    <div class="tab-panel" id="tab-orchestration">
+                        <h3>Orchestration</h3>
+                        <p>Mengelola dan mengkoordinasikan seluruh komponen sistem cerdas agar bekerja secara harmonis. Mencakup workflow management, resource allocation, monitoring, dan continuous improvement dari sistem yang telah berjalan.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabPanels.forEach(p => p.classList.remove('active'));
+
+                // Add active class to clicked tab and corresponding panel
+                btn.classList.add('active');
+                const targetTab = btn.getAttribute('data-tab');
+                document.getElementById('tab-' + targetTab).classList.add('active');
+            });
+        });
+    });
+</script>
+{% endblock %}

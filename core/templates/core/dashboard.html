@@ -1,0 +1,1038 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - CoreIE{% endblock %}
+
+{% block body %}
+<div class="dashboard-page">
+    {% include 'core/navbar.html' %}
+    {% include 'core/sidebar.html' %}
+
+    <main class="dashboard-main">
+        <div class="dashboard-filter" style="margin-bottom: 24px; display: flex; align-items: center; justify-content: flex-start; width: 100%;">
+            <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 30px; padding: 4px; display: inline-flex; gap: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                <button id="btn-simple-chart" onclick="toggleChartView('simple')" style="background: var(--color-accent); color: white; border: none; padding: 8px 24px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s;">Simple Chart</button>
+                <button id="btn-detailed-chart" onclick="toggleChartView('detailed')" style="background: transparent; color: var(--color-gray); border: none; padding: 8px 24px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s;">Detailed Chart</button>
+            </div>
+        </div>
+
+        <div id="simple-chart-view">
+        <!-- STATS CARDS -->
+        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 32px;">
+            <!-- Total Projects -->
+            <div class="stat-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; display: flex; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-md)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.02)';">
+                <div style="background: rgba(37, 99, 235, 0.1); color: #2563eb; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                </div>
+                <div>
+                    <p style="font-size: 13px; color: var(--color-gray); margin: 0; font-weight: 500;">Total Proyek</p>
+                    <h3 style="font-size: 24px; font-weight: 700; margin: 0; color: var(--color-text);">{{ total_projects }}</h3>
+                </div>
+            </div>
+            
+            <!-- Active Projects -->
+            <div class="stat-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; display: flex; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-md)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.02)';">
+                <div style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                </div>
+                <div>
+                    <p style="font-size: 13px; color: var(--color-gray); margin: 0; font-weight: 500;">Proyek Aktif</p>
+                    <h3 style="font-size: 24px; font-weight: 700; margin: 0; color: var(--color-text);">{{ active_projects }}</h3>
+                </div>
+            </div>
+
+            <!-- Completed Projects -->
+            <div class="stat-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; display: flex; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-md)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.02)';">
+                <div style="background: rgba(16, 185, 129, 0.1); color: #10b981; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </div>
+                <div>
+                    <p style="font-size: 13px; color: var(--color-gray); margin: 0; font-weight: 500;">Proyek Selesai</p>
+                    <h3 style="font-size: 24px; font-weight: 700; margin: 0; color: var(--color-text);">{{ completed_projects }}</h3>
+                </div>
+            </div>
+            
+            <!-- Avg Progress -->
+            <div class="stat-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; display: flex; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-md)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.02)';">
+                <div style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>
+                </div>
+                <div>
+                    <p style="font-size: 13px; color: var(--color-gray); margin: 0; font-weight: 500;">Rata-rata Progress</p>
+                    <h3 style="font-size: 24px; font-weight: 700; margin: 0; color: var(--color-text);">{{ avg_progress }}%</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHARTS SECTION -->
+        <style>
+            @media (max-width: 900px) {
+                .charts-grid { grid-template-columns: 1fr !important; }
+            }
+        </style>
+        <div class="charts-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+            <!-- Bar Chart -->
+            <div class="chart-card" style="min-width: 0; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h3 style="font-size: 16px; font-weight: 600; margin: 0; color: var(--color-text);">Progress Per Proyek</h3>
+                    <select id="progressFilter" style="padding: 4px 12px; border: 1px solid var(--color-border); border-radius: 6px; font-size: 13px; font-weight: 500; background: var(--color-bg); color: var(--color-text); outline: none; cursor: pointer;">
+                        <option value="active">Belum Selesai</option>
+                        <option value="completed">Sudah Selesai</option>
+                        <option value="all">Semua Proyek</option>
+                    </select>
+                </div>
+                <!-- Add vertical scroll wrapper for horizontal bar chart -->
+                <div style="width: 100%; overflow-y: auto; padding-right: 8px; max-height: 400px;">
+                    <div id="progressChartContainer" style="position: relative; min-height: 320px; width: 100%;">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Doughnut Chart -->
+            <div class="chart-card" style="min-width: 0; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); display: flex; flex-direction: column;">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 24px; color: var(--color-text);">Status Distribusi</h3>
+                <div style="position: relative; flex: 1; min-height: 250px; width: 100%; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Chart -->
+        <div style="margin-top: 24px;">
+            <div class="chart-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h3 style="font-size: 16px; font-weight: 600; margin: 0; color: var(--color-text);">Tren Pembuatan Proyek</h3>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <select id="timelineMonthSelect" onchange="updateTimelineChart()" style="display: none; background: var(--color-bg); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 6px; padding: 6px 12px; font-size: 13px; font-weight: 500; cursor: pointer; outline: none;">
+                            <option value="1">Januari</option>
+                            <option value="2">Februari</option>
+                            <option value="3">Maret</option>
+                            <option value="4">April</option>
+                            <option value="5">Mei</option>
+                            <option value="6">Juni</option>
+                            <option value="7">Juli</option>
+                            <option value="8">Agustus</option>
+                            <option value="9">September</option>
+                            <option value="10">Oktober</option>
+                            <option value="11">November</option>
+                            <option value="12">Desember</option>
+                        </select>
+                        <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 30px; padding: 4px; display: inline-flex; gap: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                            <button id="btn-timeline-month" onclick="setTimelineFilter('month')" style="background: var(--color-accent); color: white; border: none; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s;">Bulanan</button>
+                            <button id="btn-timeline-week" onclick="setTimelineFilter('week')" style="background: transparent; color: var(--color-gray); border: none; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s;">Mingguan</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="position: relative; height: 320px; width: 100%;">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        </div> <!-- End of simple-chart-view -->
+
+        <div id="detailed-chart-view" style="display: none;">
+            <!-- Row 1: Summary Cards (6 cards) -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-top: 24px; margin-bottom: 16px;">
+                <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(59, 130, 246, 0.1); display: flex; align-items: center; justify-content: center; color: #3b82f6; flex-shrink: 0;">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    </div>
+                    <div><div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 2px;">Teknologi</div><div id="counter-tech" style="font-size: 22px; font-weight: 700; color: var(--color-text);">0</div></div>
+                </div>
+                <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; color: #10b981; flex-shrink: 0;">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </div>
+                    <div><div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 2px;">Anggota Tim</div><div id="counter-pic" style="font-size: 22px; font-weight: 700; color: var(--color-text);">0</div></div>
+                </div>
+                <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(236, 72, 153, 0.1); display: flex; align-items: center; justify-content: center; color: #ec4899; flex-shrink: 0;">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <div><div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 2px;">Proses AI</div><div id="counter-ai" style="font-size: 22px; font-weight: 700; color: var(--color-text);">0</div></div>
+                </div>
+                <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(139, 92, 246, 0.1); display: flex; align-items: center; justify-content: center; color: #8b5cf6; flex-shrink: 0;">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <div><div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 2px;">Modul Selesai</div><div id="counter-modules" style="font-size: 22px; font-weight: 700; color: var(--color-text);">0</div></div>
+                </div>
+                <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(245, 158, 11, 0.1); display: flex; align-items: center; justify-content: center; color: #f59e0b; flex-shrink: 0;">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg>
+                    </div>
+                    <div><div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 2px;">Kendala</div><div id="counter-constraints" style="font-size: 22px; font-weight: 700; color: var(--color-text);">0</div></div>
+                </div>
+                <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(14, 165, 233, 0.1); display: flex; align-items: center; justify-content: center; color: #0ea5e9; flex-shrink: 0;">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                    </div>
+                    <div><div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 2px;">Fungsi AI</div><div id="counter-functions" style="font-size: 22px; font-weight: 700; color: var(--color-text);">0</div></div>
+                </div>
+            </div>
+
+            <!-- Row 2: More Counters -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(244, 63, 94, 0.1); display: flex; align-items: center; justify-content: center; color: #f43f5e; flex-shrink: 0;">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                    </div>
+                    <div><div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 2px;">Proses Bisnis</div><div id="counter-biz" style="font-size: 22px; font-weight: 700; color: var(--color-text);">0</div></div>
+                </div>
+                <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(34, 197, 94, 0.1); display: flex; align-items: center; justify-content: center; color: #22c55e; flex-shrink: 0;">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                    </div>
+                    <div><div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 2px;">Strategi Anti-Eror</div><div id="counter-errors" style="font-size: 22px; font-weight: 700; color: var(--color-text);">0</div></div>
+                </div>
+                <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(168, 85, 247, 0.1); display: flex; align-items: center; justify-content: center; color: #a855f7; flex-shrink: 0;">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path></svg>
+                    </div>
+                    <div><div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 2px;">Rencana Data</div><div id="counter-data" style="font-size: 22px; font-weight: 700; color: var(--color-text);">0</div></div>
+                </div>
+                <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(99, 102, 241, 0.1); display: flex; align-items: center; justify-content: center; color: #6366f1; flex-shrink: 0;">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                    </div>
+                    <div><div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 2px;">Lampiran</div><div id="counter-attach" style="font-size: 22px; font-weight: 700; color: var(--color-text);">0</div></div>
+                </div>
+                <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(56, 189, 248, 0.1); display: flex; align-items: center; justify-content: center; color: #38bdf8; flex-shrink: 0;">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                    </div>
+                    <div><div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 2px;">Leading Indicators</div><div id="counter-leading" style="font-size: 22px; font-weight: 700; color: var(--color-text);">0</div></div>
+                </div>
+                <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(251, 146, 60, 0.1); display: flex; align-items: center; justify-content: center; color: #fb923c; flex-shrink: 0;">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div><div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 2px;">Fase Orkestrasi</div><div id="counter-phases" style="font-size: 22px; font-weight: 700; color: var(--color-text);">0</div></div>
+                </div>
+            </div>
+
+            <!-- 2 COL: Tren Pembuatan Proyek + Tren Aktivitas Update -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 24px;">
+                <div class="chart-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h3 style="font-size: 16px; font-weight: 600; margin: 0; color: var(--color-text);">Tren Pembuatan Proyek</h3>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <select id="detTimelineMonthSelect" onchange="updateDetailedTimelineChart()" style="display: none; background: var(--color-bg); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 500; cursor: pointer; outline: none;">
+                                <option value="1">Januari</option>
+                                <option value="2">Februari</option>
+                                <option value="3">Maret</option>
+                                <option value="4">April</option>
+                                <option value="5">Mei</option>
+                                <option value="6">Juni</option>
+                                <option value="7">Juli</option>
+                                <option value="8">Agustus</option>
+                                <option value="9">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+                            </select>
+                            <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 30px; padding: 2px; display: inline-flex; gap: 2px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                                <button id="btn-det-timeline-month" onclick="setDetTimelineFilter('month')" style="background: var(--color-accent); color: white; border: none; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s;">Bulanan</button>
+                                <button id="btn-det-timeline-week" onclick="setDetTimelineFilter('week')" style="background: transparent; color: var(--color-gray); border: none; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s;">Mingguan</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="detailedTimelineChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h3 style="font-size: 16px; font-weight: 600; margin: 0; color: var(--color-text);">Tren Aktivitas (Update)</h3>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <select id="detUpdateMonthSelect" onchange="updateDetailedUpdateChart()" style="display: none; background: var(--color-bg); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 500; cursor: pointer; outline: none;">
+                                <option value="1">Januari</option>
+                                <option value="2">Februari</option>
+                                <option value="3">Maret</option>
+                                <option value="4">April</option>
+                                <option value="5">Mei</option>
+                                <option value="6">Juni</option>
+                                <option value="7">Juli</option>
+                                <option value="8">Agustus</option>
+                                <option value="9">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+                            </select>
+                            <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 30px; padding: 2px; display: inline-flex; gap: 2px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                                <button id="btn-det-update-month" onclick="setDetUpdateFilter('month')" style="background: var(--color-accent); color: white; border: none; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s;">Bulanan</button>
+                                <button id="btn-det-update-week" onclick="setDetUpdateFilter('week')" style="background: transparent; color: var(--color-gray); border: none; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s;">Mingguan</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="detailedUpdateChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FULL WIDTH: Top Teknologi AI & IT -->
+            <div style="margin-bottom: 24px;">
+                <div class="chart-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 24px; color: var(--color-text);">Top Teknologi AI & IT</h3>
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="techChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2 COL: PIC Workload + Constraints -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 24px;">
+                <div class="chart-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 24px; color: var(--color-text);">Beban Kerja Tim (PIC)</h3>
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="picChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 24px; color: var(--color-text);">Kategori Kendala Utama</h3>
+                    <div style="position: relative; height: 300px; width: 100%; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="constraintChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- FULL WIDTH: Proses Bisnis -->
+            <div style="margin-bottom: 24px;">
+                <div class="chart-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 24px; color: var(--color-text);">Peta Proses Bisnis</h3>
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="bizProcChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3 COL: Module Status + Objectives + Process -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 24px;">
+                <div class="chart-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 24px; color: var(--color-text);">Status Produksi Modul</h3>
+                    <div style="position: relative; height: 260px; width: 100%; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="modStatusChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 24px; color: var(--color-text);">Fokus Sasaran Proyek</h3>
+                    <div style="position: relative; height: 260px; width: 100%; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="objectiveChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 24px; color: var(--color-text);">Rasio AI vs Standar</h3>
+                    <div style="position: relative; height: 260px; width: 100%; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="processChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FULL WIDTH: Fungsi AI yang Dikembangkan -->
+            <div style="margin-bottom: 24px;">
+                <div class="chart-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 24px; color: var(--color-text);">Fungsi AI yang Dikembangkan</h3>
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="functionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2 COL: Orchestration Category + Timeline Status -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 24px;">
+                <div class="chart-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 24px; color: var(--color-text);">Distribusi Kategori Orkestrasi</h3>
+                    <div style="position: relative; height: 300px; width: 100%; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="orchCatChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 24px; color: var(--color-text);">Status Fase Timeline</h3>
+                    <div style="position: relative; height: 300px; width: 100%; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="timelineStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- FULL WIDTH: Intelligence Experience Combinations -->
+            <div style="margin-bottom: 24px;">
+                <div class="chart-card" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 24px; color: var(--color-text);">Distribusi Kombinasi Intelligence Experience</h3>
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="experienceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<!-- Add Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Prepare Data for Charts
+        const activeProjects = [];
+        const completedProjects = [];
+        
+        {% for project in projects %}
+            {
+                let name = "{{ project.name|escapejs }}";
+                if(name.length > 25) name = name.substring(0, 22) + '...';
+                
+                {% if project.status|lower == 'completed' %}
+                completedProjects.push({name: name, progress: {{ project.progress }}});
+                {% else %}
+                activeProjects.push({name: name, progress: {{ project.progress }}});
+                {% endif %}
+            }
+        {% endfor %}
+
+        // 1. Bar Chart (Progress)
+        const ctxProgress = document.getElementById('progressChart').getContext('2d');
+        
+        const gradientBlue = ctxProgress.createLinearGradient(0, 0, 400, 0);
+        gradientBlue.addColorStop(0, 'rgba(37, 99, 235, 0.8)');
+        gradientBlue.addColorStop(1, 'rgba(37, 99, 235, 0.2)');
+
+        let progressChartInstance = null;
+
+        function updateProgressChart(filter) {
+            let dataArr = [];
+            if (filter === 'active') dataArr = activeProjects;
+            else if (filter === 'completed') dataArr = completedProjects;
+            else dataArr = activeProjects.concat(completedProjects);
+            
+            // Limit max 10
+            dataArr = dataArr.slice(0, 10);
+            
+            const labels = dataArr.length > 0 ? dataArr.map(p => p.name) : ['Belum ada data'];
+            const data = dataArr.length > 0 ? dataArr.map(p => p.progress) : [0];
+            
+            if (progressChartInstance) {
+                progressChartInstance.data.labels = labels;
+                progressChartInstance.data.datasets[0].data = data;
+                progressChartInstance.update();
+            } else {
+                progressChartInstance = new Chart(ctxProgress, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Progress (%)',
+                            data: data,
+                            backgroundColor: gradientBlue,
+                            borderColor: '#2563eb',
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            barPercentage: 0.6,
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y', // Membuatnya benar-benar horizontal
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#1e293b',
+                                padding: 12,
+                                titleFont: { size: 14, family: "'Inter', sans-serif" },
+                                bodyFont: { size: 13, family: "'Inter', sans-serif" },
+                                displayColors: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.parsed.x + '% Selesai';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                max: 100,
+                                grid: { color: 'rgba(100, 116, 139, 0.2)', drawBorder: false },
+                                ticks: { font: { family: "'Inter', sans-serif" }, color: '#64748b' }
+                            },
+                            y: {
+                                grid: { display: false, drawBorder: false },
+                                ticks: { font: { family: "'Inter', sans-serif" }, color: '#475569' }
+                            }
+                        },
+                        animation: {
+                            duration: 1500,
+                            easing: 'easeOutQuart'
+                        }
+                    }
+                });
+            }
+            
+            const itemHeight = 48;
+            const minHeight = 320;
+            const calcHeight = Math.max(minHeight, dataArr.length * itemHeight);
+            document.getElementById('progressChartContainer').style.minHeight = calcHeight + 'px';
+        }
+
+        updateProgressChart('active');
+
+        document.getElementById('progressFilter').addEventListener('change', function(e) {
+            updateProgressChart(e.target.value);
+        });
+
+        // 2. Doughnut Chart (Status)
+        const ctxStatus = document.getElementById('statusChart').getContext('2d');
+        const statusData = [
+            {{ completed_projects }},
+            {{ active_projects }},
+            {{ new_projects }}
+        ];
+        
+        const total = statusData.reduce((a, b) => a + b, 0);
+        
+        new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+                labels: ['Selesai', 'Aktif', 'Baru'],
+                datasets: [{
+                    data: total > 0 ? statusData : [1],
+                    backgroundColor: total > 0 ? [
+                        '#10b981', // Emerald (Completed)
+                        '#f59e0b', // Amber (Active)
+                        '#64748b'  // Slate (New)
+                    ] : ['#e2e8f0'], // Gray if empty
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                layout: {
+                    padding: 10
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: { family: "'Inter', sans-serif", size: 13 },
+                            color: '#475569'
+                        }
+                    },
+                    tooltip: {
+                        enabled: total > 0,
+                        backgroundColor: '#1e293b',
+                        padding: 12,
+                        titleFont: { size: 14, family: "'Inter', sans-serif" },
+                        bodyFont: { size: 13, family: "'Inter', sans-serif" },
+                    }
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true,
+                    duration: 1500,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+
+        // 3. Timeline Chart (Line)
+        const ctxTimeline = document.getElementById('timelineChart').getContext('2d');
+        const monthLabels = JSON.parse('{{ month_labels|escapejs }}');
+        const monthlyCounts = JSON.parse('{{ monthly_counts|escapejs }}');
+        const weekLabels = JSON.parse('{{ week_labels|escapejs }}');
+        const weeklyCountsAll = JSON.parse('{{ weekly_counts_all|escapejs }}');
+
+        // Initialize default month select
+        document.getElementById('timelineMonthSelect').value = '{{ current_month }}';
+
+        const gradientLine = ctxTimeline.createLinearGradient(0, 0, 0, 320);
+        gradientLine.addColorStop(0, 'rgba(139, 92, 246, 0.4)'); // Purple
+        gradientLine.addColorStop(1, 'rgba(139, 92, 246, 0.0)');
+
+        window.timelineChartObj = new Chart(ctxTimeline, {
+            type: 'line',
+            data: {
+                labels: monthLabels,
+                datasets: [{
+                    label: 'Proyek Dibuat',
+                    data: monthlyCounts,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: gradientLine,
+                    borderWidth: 2,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#8b5cf6',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.4 // Smooth curve
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        padding: 12,
+                        titleFont: { size: 14, family: "'Inter', sans-serif" },
+                        bodyFont: { size: 13, family: "'Inter', sans-serif" },
+                        displayColors: false,
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { font: { family: "'Inter', sans-serif" }, color: '#64748b' }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, font: { family: "'Inter', sans-serif" }, color: '#64748b' },
+                        grid: { color: 'rgba(100, 116, 139, 0.2)', drawBorder: false }
+                    }
+                },
+                animation: { duration: 1000, easing: 'easeOutQuart' }
+            }
+        });
+
+    });
+
+    let currentTimelineFilter = 'month';
+
+    function setTimelineFilter(filter) {
+        currentTimelineFilter = filter;
+        const btnMonth = document.getElementById('btn-timeline-month');
+        const btnWeek = document.getElementById('btn-timeline-week');
+        const monthSelect = document.getElementById('timelineMonthSelect');
+
+        if (filter === 'month') {
+            btnMonth.style.background = 'var(--color-accent)';
+            btnMonth.style.color = 'white';
+            btnWeek.style.background = 'transparent';
+            btnWeek.style.color = 'var(--color-gray)';
+            monthSelect.style.display = 'none';
+        } else {
+            btnWeek.style.background = 'var(--color-accent)';
+            btnWeek.style.color = 'white';
+            btnMonth.style.background = 'transparent';
+            btnMonth.style.color = 'var(--color-gray)';
+            monthSelect.style.display = 'block';
+        }
+        updateTimelineChart();
+    }
+
+    function updateTimelineChart() {
+        const monthLabels = JSON.parse('{{ month_labels|escapejs }}');
+        const monthlyCounts = JSON.parse('{{ monthly_counts|escapejs }}');
+        const weekLabels = JSON.parse('{{ week_labels|escapejs }}');
+        const weeklyCountsAll = JSON.parse('{{ weekly_counts_all|escapejs }}');
+        
+        if (currentTimelineFilter === 'week') {
+            const selectedMonth = document.getElementById('timelineMonthSelect').value;
+            window.timelineChartObj.data.labels = weekLabels;
+            window.timelineChartObj.data.datasets[0].data = weeklyCountsAll[selectedMonth] || [0,0,0,0,0];
+        } else {
+            window.timelineChartObj.data.labels = monthLabels;
+            window.timelineChartObj.data.datasets[0].data = monthlyCounts;
+        }
+        window.timelineChartObj.update();
+    }
+
+    function toggleChartView(view) {
+        const simpleView = document.getElementById('simple-chart-view');
+        const detailedView = document.getElementById('detailed-chart-view');
+        const btnSimple = document.getElementById('btn-simple-chart');
+        const btnDetailed = document.getElementById('btn-detailed-chart');
+
+        if (view === 'simple') {
+            simpleView.style.display = 'block';
+            detailedView.style.display = 'none';
+            
+            // Active state
+            btnSimple.style.background = 'var(--color-accent)';
+            btnSimple.style.color = 'white';
+            
+            // Inactive state
+            btnDetailed.style.background = 'transparent';
+            btnDetailed.style.color = 'var(--color-gray)';
+        } else {
+            simpleView.style.display = 'none';
+            detailedView.style.display = 'block';
+            
+            // Active state
+            btnDetailed.style.background = 'var(--color-accent)';
+            btnDetailed.style.color = 'white';
+            
+            // Inactive state
+            btnSimple.style.background = 'transparent';
+            btnSimple.style.color = 'var(--color-gray)';
+            
+            initDetailedCharts();
+        }
+    }
+
+    let detailedChartsInitialized = false;
+
+    function initDetailedCharts() {
+        if (detailedChartsInitialized) return;
+        detailedChartsInitialized = true;
+
+        const detailData = JSON.parse('{{ detail_data|escapejs|default:"{}" }}');
+        
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#64748b', font: { family: "'Inter', sans-serif" } } },
+                tooltip: {
+                    backgroundColor: '#1e293b', padding: 12,
+                    titleFont: { size: 14, family: "'Inter', sans-serif" },
+                    bodyFont: { size: 13, family: "'Inter', sans-serif" },
+                    displayColors: true,
+                }
+            },
+            animation: { duration: 1500, easing: 'easeOutQuart' }
+        };
+
+        const barOptions = { ...commonOptions };
+        barOptions.indexAxis = 'y';
+        barOptions.plugins.legend.display = false;
+        barOptions.scales = {
+            x: { grid: { color: 'rgba(100, 116, 139, 0.2)', drawBorder: false }, ticks: { color: '#64748b', precision: 0 } },
+            y: { grid: { display: false, drawBorder: false }, ticks: { color: '#64748b' } }
+        };
+        
+        // Populate Summary Cards
+        document.getElementById('counter-tech').innerText = detailData.total_tech || 0;
+        document.getElementById('counter-pic').innerText = detailData.total_pic || 0;
+        document.getElementById('counter-ai').innerText = detailData.total_smart_processes || 0;
+        document.getElementById('counter-modules').innerText = detailData.total_modules_done || 0;
+        document.getElementById('counter-constraints').innerText = detailData.total_constraints || 0;
+        document.getElementById('counter-functions').innerText = detailData.total_functions || 0;
+        document.getElementById('counter-biz').innerText = detailData.total_biz_processes || 0;
+        document.getElementById('counter-errors').innerText = detailData.total_error_strategies || 0;
+        document.getElementById('counter-data').innerText = detailData.total_data_plans || 0;
+        document.getElementById('counter-attach').innerText = detailData.total_attachments || 0;
+        document.getElementById('counter-leading').innerText = detailData.total_leading_features || 0;
+        document.getElementById('counter-phases').innerText = detailData.total_timeline_phases || 0;
+
+        // 1. Tech Chart (Bar)
+        new Chart(document.getElementById('techChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: detailData.tech_labels && detailData.tech_labels.length ? detailData.tech_labels : ['Tidak ada data'],
+                datasets: [{
+                    label: 'Penggunaan',
+                    data: detailData.tech_data && detailData.tech_data.length ? detailData.tech_data : [0],
+                    backgroundColor: 'rgba(14, 165, 233, 0.7)',
+                    borderColor: '#0ea5e9',
+                    borderWidth: 1, borderRadius: 4
+                }]
+            },
+            options: barOptions
+        });
+
+        // 2. PIC Chart (Bar)
+        new Chart(document.getElementById('picChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: detailData.pic_labels && detailData.pic_labels.length ? detailData.pic_labels : ['Tidak ada data'],
+                datasets: [{
+                    label: 'Jumlah Tugas',
+                    data: detailData.pic_data && detailData.pic_data.length ? detailData.pic_data : [0],
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: '#10b981',
+                    borderWidth: 1, borderRadius: 4
+                }]
+            },
+            options: barOptions
+        });
+
+        // 3. Constraint Chart (Polar Area)
+        new Chart(document.getElementById('constraintChart').getContext('2d'), {
+            type: 'polarArea',
+            data: {
+                labels: detailData.constraint_labels && detailData.constraint_labels.length ? detailData.constraint_labels : ['Tidak ada data'],
+                datasets: [{
+                    data: detailData.constraint_data && detailData.constraint_data.length ? detailData.constraint_data : [0],
+                    backgroundColor: ['rgba(239, 68, 68, 0.6)', 'rgba(249, 115, 22, 0.6)', 'rgba(234, 179, 8, 0.6)', 'rgba(52, 211, 153, 0.6)', 'rgba(96, 165, 250, 0.6)'],
+                    borderWidth: 1
+                }]
+            },
+            options: { ...commonOptions, scales: { r: { beginAtZero: true, ticks: { display: false } } } }
+        });
+
+        // 4. Biz Process Chart (Bar - full width)
+        new Chart(document.getElementById('bizProcChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: detailData.biz_proc_labels && detailData.biz_proc_labels.length ? detailData.biz_proc_labels : ['Tidak ada data'],
+                datasets: [{
+                    label: 'Frekuensi',
+                    data: detailData.biz_proc_data && detailData.biz_proc_data.length ? detailData.biz_proc_data : [0],
+                    backgroundColor: 'rgba(244, 63, 94, 0.7)',
+                    borderColor: '#f43f5e',
+                    borderWidth: 1, borderRadius: 4
+                }]
+            },
+            options: barOptions
+        });
+
+        // 5. Module Status Chart (Doughnut)
+        const modStatusDataRaw = detailData.mod_status_data || [0,0,0,0];
+        const modStatusTotal = modStatusDataRaw.reduce((a, b) => a + b, 0);
+        new Chart(document.getElementById('modStatusChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Belum Mulai', 'In Progress', 'Done', 'Blocked'],
+                datasets: [{
+                    data: modStatusTotal > 0 ? modStatusDataRaw : [1],
+                    backgroundColor: modStatusTotal > 0 ? ['rgba(226, 232, 240, 1)', 'rgba(96, 165, 250, 1)', 'rgba(52, 211, 153, 1)', 'rgba(248, 113, 113, 1)'] : ['#e2e8f0'],
+                    borderWidth: 0, hoverOffset: 4
+                }]
+            },
+            options: { ...commonOptions, cutout: '70%', plugins: { tooltip: { enabled: modStatusTotal > 0 } } }
+        });
+
+        // 6. Objective Chart (Radar)
+        new Chart(document.getElementById('objectiveChart').getContext('2d'), {
+            type: 'radar',
+            data: {
+                labels: ['Organizational', 'User Outcomes', 'Model Properties'],
+                datasets: [{
+                    label: 'Fokus Metrik',
+                    data: detailData.obj_data || [0,0,0],
+                    backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                    borderColor: '#a855f7',
+                    pointBackgroundColor: '#a855f7',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#a855f7'
+                }]
+            },
+            options: { ...commonOptions, scales: { r: { beginAtZero: true, ticks: { display: false }, grid: { color: 'rgba(100, 116, 139, 0.2)' } } } }
+        });
+
+        // 7. Process Chart (Pie)
+        const processDataRaw = detailData.process_data || [0,0];
+        const processTotal = processDataRaw.reduce((a, b) => a + b, 0);
+        new Chart(document.getElementById('processChart').getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: ['Smart Processes (AI)', 'Standard Processes'],
+                datasets: [{
+                    data: processTotal > 0 ? processDataRaw : [1],
+                    backgroundColor: processTotal > 0 ? ['rgba(236, 72, 153, 0.8)', 'rgba(203, 213, 225, 0.8)'] : ['#e2e8f0'],
+                    borderWidth: 0, hoverOffset: 4
+                }]
+            },
+            options: { ...commonOptions, plugins: { tooltip: { enabled: processTotal > 0 } } }
+        });
+
+        // 8. AI Functions Chart (Bar - full width)
+        new Chart(document.getElementById('functionChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: detailData.function_labels && detailData.function_labels.length ? detailData.function_labels : ['Belum ada data'],
+                datasets: [{
+                    label: 'Penggunaan',
+                    data: detailData.function_data && detailData.function_data.length ? detailData.function_data : [0],
+                    backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                    borderColor: '#6366f1',
+                    borderWidth: 1, borderRadius: 4
+                }]
+            },
+            options: barOptions
+        });
+
+        // 9. Orchestration Category (Doughnut)
+        const orchCatDataRaw = detailData.orch_cat_data && detailData.orch_cat_data.length ? detailData.orch_cat_data : [0,0,0];
+        const orchCatTotal = orchCatDataRaw.reduce((a, b) => a + b, 0);
+        new Chart(document.getElementById('orchCatChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: detailData.orch_cat_labels && detailData.orch_cat_labels.length ? detailData.orch_cat_labels : ['Belum ada data'],
+                datasets: [{
+                    data: orchCatTotal > 0 ? orchCatDataRaw : [1],
+                    backgroundColor: orchCatTotal > 0 ? ['rgba(56, 189, 248, 0.8)', 'rgba(251, 146, 60, 0.8)', 'rgba(163, 230, 53, 0.8)'] : ['#e2e8f0'],
+                    borderWidth: 0, hoverOffset: 4
+                }]
+            },
+            options: { ...commonOptions, cutout: '65%', plugins: { tooltip: { enabled: orchCatTotal > 0 } } }
+        });
+
+        // 10. Timeline Status (Horizontal stacked-style Bar)
+        new Chart(document.getElementById('timelineStatusChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Backlog', 'To Do', 'In Progress', 'Done'],
+                datasets: [{
+                    label: 'Jumlah Fase',
+                    data: detailData.timeline_status_data || [0,0,0,0],
+                    backgroundColor: ['rgba(226, 232, 240, 0.8)', 'rgba(251, 146, 60, 0.8)', 'rgba(96, 165, 250, 0.8)', 'rgba(52, 211, 153, 0.8)'],
+                    borderRadius: 4, borderWidth: 0
+                }]
+            },
+            options: barOptions
+        });
+
+        // 11. Intelligence Experience Chart (Horizontal Bar)
+        new Chart(document.getElementById('experienceChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: detailData.exp_labels && detailData.exp_labels.length ? detailData.exp_labels : ['Belum ada data'],
+                datasets: [{
+                    label: 'Jumlah Proyek',
+                    data: detailData.exp_data && detailData.exp_data.length ? detailData.exp_data : [0],
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: '#10b981',
+                    borderWidth: 1, borderRadius: 4
+                }]
+            },
+            options: barOptions
+        });
+
+        // 12. Detailed Timeline Chart
+        const monthLabels = JSON.parse('{{ month_labels|escapejs }}');
+        const monthlyCounts = JSON.parse('{{ monthly_counts|escapejs }}');
+        const monthlyUpdateCounts = JSON.parse('{{ monthly_update_counts|escapejs }}');
+
+        const gradientLine1 = document.getElementById('detailedTimelineChart').getContext('2d').createLinearGradient(0, 0, 0, 300);
+        gradientLine1.addColorStop(0, 'rgba(139, 92, 246, 0.4)');
+        gradientLine1.addColorStop(1, 'rgba(139, 92, 246, 0.0)');
+
+        window.detailedTimelineChartObj = new Chart(document.getElementById('detailedTimelineChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: monthLabels,
+                datasets: [{
+                    label: 'Proyek Dibuat',
+                    data: monthlyCounts,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: gradientLine1,
+                    borderWidth: 2,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#8b5cf6',
+                    fill: true, tension: 0.4
+                }]
+            },
+            options: { ...commonOptions, plugins: { legend: { display: false } } }
+        });
+
+        // 13. Detailed Update Chart
+        const gradientLine2 = document.getElementById('detailedUpdateChart').getContext('2d').createLinearGradient(0, 0, 0, 300);
+        gradientLine2.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
+        gradientLine2.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+        window.detailedUpdateChartObj = new Chart(document.getElementById('detailedUpdateChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: monthLabels,
+                datasets: [{
+                    label: 'Aktivitas / Pembaruan',
+                    data: monthlyUpdateCounts,
+                    borderColor: '#10b981',
+                    backgroundColor: gradientLine2,
+                    borderWidth: 2,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#10b981',
+                    fill: true, tension: 0.4
+                }]
+            },
+            options: { ...commonOptions, plugins: { legend: { display: false } } }
+        });
+    }
+
+    // Det Timeline Filter Logic
+    let currentDetTimelineFilter = 'month';
+    function setDetTimelineFilter(mode) {
+        currentDetTimelineFilter = mode;
+        const btnMonth = document.getElementById('btn-det-timeline-month');
+        const btnWeek = document.getElementById('btn-det-timeline-week');
+        const monthSelect = document.getElementById('detTimelineMonthSelect');
+
+        if (mode === 'month') {
+            btnMonth.style.background = 'var(--color-accent)';
+            btnMonth.style.color = 'white';
+            btnWeek.style.background = 'transparent';
+            btnWeek.style.color = 'var(--color-gray)';
+            monthSelect.style.display = 'none';
+        } else {
+            btnWeek.style.background = 'var(--color-accent)';
+            btnWeek.style.color = 'white';
+            btnMonth.style.background = 'transparent';
+            btnMonth.style.color = 'var(--color-gray)';
+            monthSelect.style.display = 'block';
+        }
+        updateDetailedTimelineChart();
+    }
+
+    function updateDetailedTimelineChart() {
+        if (!window.detailedTimelineChartObj) return;
+        const monthLabels = JSON.parse('{{ month_labels|escapejs }}');
+        const monthlyCounts = JSON.parse('{{ monthly_counts|escapejs }}');
+        const weekLabels = JSON.parse('{{ week_labels|escapejs }}');
+        const weeklyCountsAll = JSON.parse('{{ weekly_counts_all|escapejs }}');
+        
+        if (currentDetTimelineFilter === 'week') {
+            const selectedMonth = document.getElementById('detTimelineMonthSelect').value;
+            window.detailedTimelineChartObj.data.labels = weekLabels;
+            window.detailedTimelineChartObj.data.datasets[0].data = weeklyCountsAll[selectedMonth] || [0,0,0,0,0];
+        } else {
+            window.detailedTimelineChartObj.data.labels = monthLabels;
+            window.detailedTimelineChartObj.data.datasets[0].data = monthlyCounts;
+        }
+        window.detailedTimelineChartObj.update();
+    }
+
+    // Det Update Filter Logic
+    let currentDetUpdateFilter = 'month';
+    function setDetUpdateFilter(mode) {
+        currentDetUpdateFilter = mode;
+        const btnMonth = document.getElementById('btn-det-update-month');
+        const btnWeek = document.getElementById('btn-det-update-week');
+        const monthSelect = document.getElementById('detUpdateMonthSelect');
+
+        if (mode === 'month') {
+            btnMonth.style.background = 'var(--color-accent)';
+            btnMonth.style.color = 'white';
+            btnWeek.style.background = 'transparent';
+            btnWeek.style.color = 'var(--color-gray)';
+            monthSelect.style.display = 'none';
+        } else {
+            btnWeek.style.background = 'var(--color-accent)';
+            btnWeek.style.color = 'white';
+            btnMonth.style.background = 'transparent';
+            btnMonth.style.color = 'var(--color-gray)';
+            monthSelect.style.display = 'block';
+        }
+        updateDetailedUpdateChart();
+    }
+
+    function updateDetailedUpdateChart() {
+        if (!window.detailedUpdateChartObj) return;
+        const monthLabels = JSON.parse('{{ month_labels|escapejs }}');
+        const monthlyUpdateCounts = JSON.parse('{{ monthly_update_counts|escapejs }}');
+        const weekLabels = JSON.parse('{{ week_labels|escapejs }}');
+        const weeklyUpdateCountsAll = JSON.parse('{{ weekly_update_counts_all|escapejs }}');
+        
+        if (currentDetUpdateFilter === 'week') {
+            const selectedMonth = document.getElementById('detUpdateMonthSelect').value;
+            window.detailedUpdateChartObj.data.labels = weekLabels;
+            window.detailedUpdateChartObj.data.datasets[0].data = weeklyUpdateCountsAll[selectedMonth] || [0,0,0,0,0];
+        } else {
+            window.detailedUpdateChartObj.data.labels = monthLabels;
+            window.detailedUpdateChartObj.data.datasets[0].data = monthlyUpdateCounts;
+        }
+        window.detailedUpdateChartObj.update();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CoreIE - Intelligence Engineering{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}?v=2.2">
+    <script>
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme) {
+            document.documentElement.setAttribute("data-theme", savedTheme);
+        }
+        
+        const accentColor = localStorage.getItem("accentColor");
+        const accentColorHover = localStorage.getItem("accentColorHover");
+        if (accentColor) {
+            document.documentElement.style.setProperty("--color-accent", accentColor);
+        }
+        if (accentColorHover) {
+            document.documentElement.style.setProperty("--color-accent-hover", accentColorHover);
+        }
+    </script>
+</head>
+<body>
+    <script>
+        // Apply sidebar state synchronously before page paint to prevent animation flash
+        {% if not is_project_detail %}
+        if (localStorage.getItem("sidebarExpanded") === "true") {
+            document.body.classList.add("sidebar-expanded");
+        }
+        {% endif %}
+        
+        // Apply reduce motion setting
+        if (localStorage.getItem("reduceMotion") === "true") {
+            document.body.classList.add("reduce-motion");
+        }
+        
+        // Apply font size setting
+        var savedFontSize = localStorage.getItem("fontSize");
+        if (savedFontSize === "large") {
+            document.body.classList.add("font-large");
+        } else if (savedFontSize === "xlarge") {
+            document.body.classList.add("font-xlarge");
+        }
+    </script>
+    {% block body %}{% endblock %}
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

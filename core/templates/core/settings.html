@@ -1,0 +1,251 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Pengaturan Web - CoreIE{% endblock %}
+
+{% block body %}
+<div class="dashboard-page">
+    {% include 'core/navbar.html' %}
+    {% include 'core/sidebar.html' %}
+    
+    <main class="dashboard-main">
+        <div class="profile-container">
+            <h1 style="font-size: 24px; margin-bottom: 8px; color: var(--color-text);">Pengaturan Web</h1>
+            <p style="color: var(--color-gray); font-size: 14px; margin-bottom: 32px;">Sesuaikan tampilan dan perilaku aplikasi sesuai preferensi Anda. Perubahan akan disimpan di browser ini.</p>
+
+            <!-- Kategori: Tampilan -->
+            <div style="margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--color-border);">
+                <h3 style="font-size: 18px; margin-bottom: 20px; color: var(--color-text); display: flex; align-items: center; gap: 8px;">
+                    Tampilan & Tema
+                </h3>
+                
+                <!-- Tema Gelap / Terang -->
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: var(--color-text);">Tema Gelap / Terang</label>
+                    <div style="display: flex; gap: 12px; max-width: 320px;">
+                        <button type="button" class="theme-btn" data-theme="light" style="flex: 1; padding: 10px 16px; border-radius: var(--radius); border: 2px solid var(--color-border); background: var(--color-bg); color: var(--color-text); cursor: pointer; font-size: 14px; font-weight: 500;">☀️ Terang</button>
+                        <button type="button" class="theme-btn" data-theme="dark" style="flex: 1; padding: 10px 16px; border-radius: var(--radius); border: 2px solid var(--color-border); background: var(--color-bg); color: var(--color-text); cursor: pointer; font-size: 14px; font-weight: 500;">🌙 Gelap</button>
+                    </div>
+                </div>
+
+                <!-- Warna Aksen -->
+                <div style="margin-bottom: 0;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: var(--color-text);">Warna Aksen</label>
+                    <div style="display: flex; gap: 12px;">
+                        <button type="button" class="accent-btn" data-color="#2563eb" data-hover="#1d4ed8" title="Biru" style="width: 40px; height: 40px; border-radius: 50%; background-color: #2563eb; border: 3px solid transparent; cursor: pointer; outline: none;"></button>
+                        <button type="button" class="accent-btn" data-color="#7c3aed" data-hover="#6d28d9" title="Ungu" style="width: 40px; height: 40px; border-radius: 50%; background-color: #7c3aed; border: 3px solid transparent; cursor: pointer; outline: none;"></button>
+                        <button type="button" class="accent-btn" data-color="#e11d48" data-hover="#be123c" title="Merah Muda" style="width: 40px; height: 40px; border-radius: 50%; background-color: #e11d48; border: 3px solid transparent; cursor: pointer; outline: none;"></button>
+                        <button type="button" class="accent-btn" data-color="#0891b2" data-hover="#0e7490" title="Biru Muda" style="width: 40px; height: 40px; border-radius: 50%; background-color: #0891b2; border: 3px solid transparent; cursor: pointer; outline: none;"></button>
+                        <button type="button" class="accent-btn" data-color="#059669" data-hover="#047857" title="Hijau" style="width: 40px; height: 40px; border-radius: 50%; background-color: #059669; border: 3px solid transparent; cursor: pointer; outline: none;"></button>
+                        <button type="button" class="accent-btn" data-color="#d97706" data-hover="#b45309" title="Oranye" style="width: 40px; height: 40px; border-radius: 50%; background-color: #d97706; border: 3px solid transparent; cursor: pointer; outline: none;"></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kategori: Aksesibilitas -->
+            <div style="margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--color-border);">
+                <h3 style="font-size: 18px; margin-bottom: 20px; color: var(--color-text); display: flex; align-items: center; gap: 8px;">
+                    Aksesibilitas
+                </h3>
+                
+                <!-- Ukuran Teks -->
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: var(--color-text);">Ukuran Teks Dasar</label>
+                    <select id="font-size-select" style="padding: 10px 12px; border-radius: var(--radius); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text); font-size: 14px; width: 100%; max-width: 320px; cursor: pointer; outline: none;">
+                        <option value="normal">Normal (14px)</option>
+                        <option value="large">Besar (16px)</option>
+                        <option value="xlarge">Sangat Besar (18px)</option>
+                    </select>
+                </div>
+
+                <!-- Kurangi Animasi -->
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="flex: 1;">
+                        <label style="display: block; font-weight: 500; font-size: 14px; color: var(--color-text); margin-bottom: 2px;">Kurangi Animasi (Reduce Motion)</label>
+                        <p style="color: var(--color-gray); font-size: 12px; margin: 0;">Mematikan efek transisi agar antarmuka lebih responsif dan instan.</p>
+                    </div>
+                    <label class="settings-toggle">
+                        <input type="checkbox" id="reduce-motion-toggle">
+                        <span class="settings-toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <button type="button" id="btn-save-settings" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 15px; font-weight: 600;">Simpan & Terapkan Pengaturan</button>
+            <p id="settings-save-message" style="color: var(--color-accent); text-align: center; margin-top: 16px; display: none; font-size: 14px; font-weight: 500;">✅ Pengaturan berhasil disimpan!</p>
+        </div>
+    </main>
+</div>
+
+<style>
+    /* Settings Toggle (consistent pill toggle) */
+    .settings-toggle {
+        position: relative;
+        display: inline-block;
+        width: 48px;
+        height: 26px;
+        flex-shrink: 0;
+    }
+    .settings-toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        position: absolute;
+    }
+    .settings-toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--color-border);
+        border-radius: 26px;
+        transition: background-color 0.3s;
+    }
+    .settings-toggle-slider::before {
+        content: '';
+        position: absolute;
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        border-radius: 50%;
+        transition: transform 0.3s;
+    }
+    .settings-toggle input:checked + .settings-toggle-slider {
+        background-color: var(--color-accent);
+    }
+    .settings-toggle input:checked + .settings-toggle-slider::before {
+        transform: translateX(22px);
+    }
+    
+    /* Theme buttons */
+    .theme-btn.active {
+        background-color: var(--color-accent) !important;
+        color: white !important;
+        border-color: var(--color-accent) !important;
+    }
+    
+    /* Accent buttons */
+    .accent-btn.active {
+        border-color: var(--color-text) !important;
+        transform: scale(1.15);
+        box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-text);
+    }
+    .accent-btn:hover {
+        transform: scale(1.1);
+    }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Theme Toggle
+    var themeBtns = document.querySelectorAll('.theme-btn');
+    var currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    
+    themeBtns.forEach(function(btn) {
+        if (btn.getAttribute('data-theme') === currentTheme) {
+            btn.classList.add('active');
+        }
+        
+        btn.addEventListener('click', function() {
+            themeBtns.forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            
+            var theme = this.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', theme);
+        });
+    });
+
+    // 2. Accent Color
+    var accentBtns = document.querySelectorAll('.accent-btn');
+    var currentAccent = localStorage.getItem('accentColor') || '#2563eb';
+    
+    accentBtns.forEach(function(btn) {
+        if (btn.getAttribute('data-color') === currentAccent) {
+            btn.classList.add('active');
+        }
+        
+        btn.addEventListener('click', function() {
+            accentBtns.forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            
+            var color = this.getAttribute('data-color');
+            var hover = this.getAttribute('data-hover');
+            document.documentElement.style.setProperty('--color-accent', color);
+            document.documentElement.style.setProperty('--color-accent-hover', hover);
+        });
+    });
+
+    // 3. Font Size
+    var fontSizeSelect = document.getElementById('font-size-select');
+    var currentFontSize = localStorage.getItem('fontSize') || 'normal';
+    fontSizeSelect.value = currentFontSize;
+    
+    function applyFontSize(size) {
+        document.body.classList.remove('font-large', 'font-xlarge');
+        if (size === 'large') {
+            document.body.classList.add('font-large');
+        } else if (size === 'xlarge') {
+            document.body.classList.add('font-xlarge');
+        }
+    }
+    
+    fontSizeSelect.addEventListener('change', function() {
+        applyFontSize(this.value);
+    });
+
+    // 4. Reduce Motion
+    var motionToggle = document.getElementById('reduce-motion-toggle');
+    var reduceMotion = localStorage.getItem('reduceMotion') === 'true';
+    motionToggle.checked = reduceMotion;
+    
+    motionToggle.addEventListener('change', function() {
+        if (this.checked) {
+            document.body.classList.add('reduce-motion');
+        } else {
+            document.body.classList.remove('reduce-motion');
+        }
+    });
+
+    // Save Button
+    var saveBtn = document.getElementById('btn-save-settings');
+    var saveMsg = document.getElementById('settings-save-message');
+    
+    saveBtn.addEventListener('click', function() {
+        // Save Theme
+        var activeThemeBtn = document.querySelector('.theme-btn.active');
+        if (activeThemeBtn) {
+            var theme = activeThemeBtn.getAttribute('data-theme');
+            localStorage.setItem('theme', theme);
+            document.documentElement.setAttribute('data-theme', theme);
+            var darkModeCheckbox = document.getElementById('darkModeCheckbox');
+            if (darkModeCheckbox) {
+                darkModeCheckbox.checked = (theme === 'dark');
+            }
+        }
+        
+        // Save Accent Color
+        var activeAccentBtn = document.querySelector('.accent-btn.active');
+        if (activeAccentBtn) {
+            localStorage.setItem('accentColor', activeAccentBtn.getAttribute('data-color'));
+            localStorage.setItem('accentColorHover', activeAccentBtn.getAttribute('data-hover'));
+        }
+        
+        // Save Font Size
+        localStorage.setItem('fontSize', fontSizeSelect.value);
+        
+        // Save Reduce Motion
+        localStorage.setItem('reduceMotion', motionToggle.checked);
+        
+        // Show success message
+        saveMsg.style.display = 'block';
+        setTimeout(function() {
+            saveMsg.style.display = 'none';
+        }, 3000);
+    });
+});
+</script>
+{% endblock %}

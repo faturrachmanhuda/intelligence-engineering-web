@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Laporan Bulanan {{ month_name }} {{ year }}</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 2cm;
+            @frame footer_frame {
+                -pdf-frame-content: footer_content;
+                left: 50pt; width: 512pt; top: 772pt; height: 20pt;
+            }
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 12pt;
+            color: #333333;
+            line-height: 1.5;
+        }
+        h1 {
+            color: #1a1a1a;
+            font-size: 24pt;
+            margin-bottom: 5px;
+        }
+        h2 {
+            color: #2563eb;
+            font-size: 16pt;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .subtitle {
+            color: #6b7280;
+            font-size: 14pt;
+            margin-bottom: 30px;
+        }
+        .summary-box {
+            background-color: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .summary-title {
+            font-weight: bold;
+            font-size: 14pt;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th {
+            background-color: #f8fafc;
+            color: #475569;
+            text-align: left;
+            padding: 10px;
+            border-bottom: 2px solid #cbd5e1;
+            font-size: 11pt;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 11pt;
+            vertical-align: top;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .progress-text {
+            font-weight: bold;
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div id="footer_content" style="text-align: right; font-size: 9pt; color: #94a3b8;">
+        Laporan di-generate pada {% now "d M Y H:i" %} - Hal <pdf:pagenumber>
+    </div>
+
+    <h1>Laporan Performa Proyek</h1>
+    <div class="subtitle">Periode: {{ month_name }} {{ year }}</div>
+
+    <div class="summary-box">
+        <div class="summary-title">Ringkasan Eksekutif</div>
+        <table>
+            <tr>
+                <td style="border: none; padding: 5px 0;"><strong>Total Proyek Aktif:</strong></td>
+                <td style="border: none; padding: 5px 0;" class="text-right">{{ total_active }} Proyek</td>
+            </tr>
+            <tr>
+                <td style="border: none; padding: 5px 0;"><strong>Proyek Selesai Bulan Ini:</strong></td>
+                <td style="border: none; padding: 5px 0;" class="text-right">{{ total_completed }} Proyek</td>
+            </tr>
+            <tr>
+                <td style="border: none; padding: 5px 0;"><strong>Proyek Baru Bulan Ini:</strong></td>
+                <td style="border: none; padding: 5px 0;" class="text-right">{{ total_new }} Proyek</td>
+            </tr>
+        </table>
+    </div>
+
+    <h2>Proyek Selesai (Completed)</h2>
+    {% if completed_this_month %}
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 40%">Nama Proyek</th>
+                <th style="width: 30%">Pelaksana</th>
+                <th style="width: 30%">Supervisor</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in completed_this_month %}
+            <tr>
+                <td><strong>{{ p.name }}</strong></td>
+                <td>{{ p.division|default:"-" }}</td>
+                <td>{{ p.supervisor|default:"-" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p><em>Tidak ada proyek yang diselesaikan pada periode ini.</em></p>
+    {% endif %}
+
+    <h2>Proyek Aktif (In Progress)</h2>
+    {% if active_projects %}
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 35%">Nama Proyek</th>
+                <th style="width: 25%">Pelaksana</th>
+                <th style="width: 25%">Target Selesai</th>
+                <th style="width: 15%" class="text-right">Progress</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in active_projects %}
+            <tr>
+                <td><strong>{{ p.name }}</strong></td>
+                <td>{{ p.division|default:"-" }}</td>
+                <td>{{ p.end_date|date:"d M Y"|default:"-" }}</td>
+                <td class="text-right progress-text">{{ p.progress }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p><em>Tidak ada proyek aktif saat ini.</em></p>
+    {% endif %}
+
+</body>
+</html>
