@@ -67,10 +67,10 @@ Aplikasi web ini merupakan sistem utama untuk subsistem **Intelligence Engineeri
 
 ```bash
 # Clone repository
-git clone <repository-url>
+git clone https://github.com/faturrachmanhuda/intelligence-engineering-web.git
 
 # Masuk ke direktori proyek
-cd "Intelligence Engineering/ie_project"
+cd intelligence-engineering-web
 
 # Buat virtual environment
 python -m venv venv
@@ -182,10 +182,10 @@ Intelligence Engineering terintegrasi dengan subsistem lain melalui mekanisme be
 | Subsistem | Web | Mobile |
 |-----------|-----|--------|
 | Intelligence Engineering | *You are here* | [GitHub](https://github.com/faturrachmanhuda/intelligence-engineering-mobile) |
-| Project Management | [Repository](../../../Project%20Management/backend) | [GitHub](https://github.com/faturrachmanhuda/project-management-mobile) |
-| Intelligence Creation | [Repository](../../../Intelligence%20Creation) | [GitHub](https://github.com/faturrachmanhuda/intelligence-creation-mobile) |
-| Dataset Management | [Repository](../../../Dataset%20Management) | [GitHub](https://github.com/faturrachmanhuda/dataset-management-mobile) |
-| Implementation | [Repository](../../../Implementation/main_web) | [GitHub](https://github.com/faturrachmanhuda/implementation-mobile) |
+| Project Management | [GitHub](https://github.com/faturrachmanhuda/project-management-web) | [GitHub](https://github.com/faturrachmanhuda/project-management-mobile) |
+| Intelligence Creation | [GitHub](https://github.com/faturrachmanhuda/intelligence-creation-web) | [GitHub](https://github.com/faturrachmanhuda/intelligence-creation-mobile) |
+| Dataset Management | [GitHub](https://github.com/faturrachmanhuda/dataset-management-web) | [GitHub](https://github.com/faturrachmanhuda/dataset-management-mobile) |
+| Implementation | [GitHub](https://github.com/faturrachmanhuda/implementation-web) | [GitHub](https://github.com/faturrachmanhuda/implementation-mobile) |
 
 ## Tim Pengembang
 
