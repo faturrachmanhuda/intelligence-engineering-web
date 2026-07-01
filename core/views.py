@@ -389,6 +389,27 @@ def api_login(request):
             return JsonResponse({'success': False, 'message': str(e)}, status=400)
     return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
 
+
+@csrf_exempt
+def api_register(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            email = data.get('email')
+            password = data.get('password')
+            
+            from django.contrib.auth.models import User
+            if User.objects.filter(username=username).exists():
+                return JsonResponse({'success': False, 'message': 'Username sudah digunakan'}, status=400)
+                
+            user = User.objects.create_user(username=username, email=email, password=password)
+            user.save()
+            return JsonResponse({'success': True, 'message': 'Registrasi berhasil', 'username': user.username})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+    return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
+
 def logout_view(request):
     logout(request)
     return redirect('core:landing')
@@ -653,7 +674,6 @@ def reports_view(request):
     }
     return render(request, 'core/reports.html', context)
 
-@login_required
 def download_report_pdf(request):
     import datetime
     from django.http import HttpResponse

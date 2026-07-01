@@ -1356,7 +1356,8 @@ document.addEventListener("DOMContentLoaded", function() {
             e.preventDefault();
             
             // 1. Fill Checkboxes First (so any dependent inputs are shown)
-            document.querySelectorAll('.form-main-column input[type="checkbox"]').forEach(cb => {
+            //    EXCEPT .smart-check — those get rebuilt by syncProcessData later
+            document.querySelectorAll('.form-main-column input[type="checkbox"]:not(.smart-check)').forEach(cb => {
                 if (!cb.checked) {
                     cb.checked = true;
                     cb.setAttribute('checked', 'checked');
@@ -1364,20 +1365,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             });
 
-            // 2. Fill Selects
-            document.querySelectorAll('.form-main-column select:not([readonly])').forEach(el => {
-                if (!el.value || el.value === "") {
-                    if (el.options.length > 1) {
-                        // try to pick the 2nd option if available, otherwise the last
-                        let idx = el.options.length > 1 ? 1 : 0;
-                        el.value = el.options[idx].value;
-                        el.options[idx].setAttribute('selected', 'selected');
-                        el.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                }
-            });
-
-            // 3. Fill Textareas
+            // 2. Fill Textareas
             document.querySelectorAll('.form-main-column textarea:not([readonly])').forEach(el => {
                 if (!el.value.trim()) {
                     var val = "Statis dummy teks untuk testing finalisasi " + Math.floor(Math.random()*1000);
@@ -1388,7 +1376,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             });
 
-            // 4. Fill All Other Inputs (text, date, number) - Excluding file/checkbox/radio
+            // 3. Fill All Other Inputs (text, date, number) - Excluding file/checkbox/radio
+            //    This triggers syncFuncSelects() (from #functions-table input events)
+            //    and syncProcessData() (from #process-table .process-name-input input events)
             document.querySelectorAll('.form-main-column input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([readonly])').forEach(el => {
                 if (!el.value.trim()) {
                     var val = "Testing " + Math.floor(Math.random()*1000);
@@ -1406,18 +1396,94 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             });
 
-            // 5. Notify & Navigate to Final Review
-            setTimeout(() => {
-                alert('Form telah diisi secara statis. Menuju halaman revisi finalisasi...');
-                const reviewBtn = document.getElementById('final-review-btn');
-                if (reviewBtn) {
-                    reviewBtn.style.display = 'block';
-                    reviewBtn.click();
-                }
-            }, 300);
+            // 4. Wait for sync events to complete, then fill dynamically-generated fields
+            setTimeout(function() {
+                // 4a. Fill func-selects (now populated by syncFuncSelects after function names were filled)
+                document.querySelectorAll('#error-minimization .func-select, #data-collection .func-select').forEach(el => {
+                    if (!el.value || el.value === "") {
+                        if (el.options.length > 1) {
+                            el.value = el.options[1].value;
+                            el.options[1].setAttribute('selected', 'selected');
+                            el.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    }
+                });
+
+                // 4b. Fill any other selects that are still empty
+                document.querySelectorAll('.form-main-column select:not([readonly])').forEach(el => {
+                    if (!el.value || el.value === "") {
+                        if (el.options.length > 1) {
+                            let idx = el.options.length > 1 ? 1 : 0;
+                            el.value = el.options[idx].value;
+                            el.options[idx].setAttribute('selected', 'selected');
+                            el.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    }
+                });
+
+                // 4c. Fill tech-inputs (recreated by syncProcessData after process names were filled)
+                document.querySelectorAll('#tech-table .tech-input').forEach(el => {
+                    if (!el.value.trim()) {
+                        el.value = "Python, Django";
+                        el.setAttribute('value', el.value);
+                        el.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                });
+
+                // 4d. Check smart-checks and fill reasons (recreated by syncProcessData)
+                document.querySelectorAll('#smart-processes .smart-process-item').forEach((item, idx) => {
+                    if (idx === 0) { // Check at least the first one
+                        var cb = item.querySelector('.smart-check');
+                        if (cb && !cb.checked) {
+                            cb.checked = true;
+                            cb.setAttribute('checked', 'checked');
+                            cb.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                        // Show and fill the reason input
+                        var reasonDiv = item.querySelector('.smart-reason');
+                        if (reasonDiv) {
+                            reasonDiv.style.display = '';
+                            var reasonInput = reasonDiv.querySelector('input');
+                            if (reasonInput && !reasonInput.value.trim()) {
+                                reasonInput.value = "Proses ini memerlukan AI untuk otomatisasi dan prediksi data";
+                                reasonInput.setAttribute('value', reasonInput.value);
+                                reasonInput.dispatchEvent(new Event('input', { bubbles: true }));
+                            }
+                        }
+                    }
+                });
+
+                // 4e. Fill error-minimization and data-collection text inputs
+                //     (these may have been cleared if list items were recreated)
+                document.querySelectorAll('#error-minimization .list-item input[type="text"]').forEach(el => {
+                    if (!el.value.trim()) {
+                        el.value = "Validasi output dengan threshold confidence level";
+                        el.setAttribute('value', el.value);
+                        el.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                });
+                document.querySelectorAll('#data-collection .list-item input[type="text"]').forEach(el => {
+                    if (!el.value.trim()) {
+                        el.value = "Pengumpulan data secara berkala dari user feedback";
+                        el.setAttribute('value', el.value);
+                        el.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                });
+
+                // 5. Notify & Navigate to Final Review
+                setTimeout(() => {
+                    alert('Form telah diisi secara statis. Menuju halaman revisi finalisasi...');
+                    const reviewBtn = document.getElementById('final-review-btn');
+                    if (reviewBtn) {
+                        reviewBtn.style.display = 'block';
+                        reviewBtn.click();
+                    }
+                }, 200);
+            }, 150); // Wait for sync DOM updates
         });
     }
 });
+
 </script>
 <script src="{% static 'core/js/main_v2.js' %}?v=50"></script>
 

@@ -24,6 +24,7 @@ urlpatterns = [
     
     # APIs
     path('api/auth/login/', views.api_login, name='api_login'),
+    path('api/auth/register/', views.api_register, name='api_register'),
     path('api/projects/<int:project_id>/', views.api_project_all, name='api_project_all'),
     path('api/projects/<int:project_id>/objectives/', views.api_project_objectives, name='api_project_objectives'),
     path('api/projects/<int:project_id>/experiences/', views.api_project_experiences, name='api_project_experiences'),
